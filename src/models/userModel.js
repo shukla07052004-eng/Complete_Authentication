@@ -27,10 +27,10 @@ const userSchema = new Schema(
             type: String,
             required: [true, 'Password is required']
         },
-        refreshToken: {
-            type: String
-        }
-
+        forgotPasswordToken: string,
+        forgotPasswordTokenExpiry: Date,
+        verifyToken: String,
+        verifyTokenExpiry: Date 
     },
     {
         timestamps: true
