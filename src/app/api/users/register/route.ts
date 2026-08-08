@@ -32,7 +32,7 @@ try {
             $or: [{ username }, { email }]
         })
     
-        if (!existedUser) {
+        if (existedUser) {
             return NextResponse.json(
                 { message: "User with email or username already exists" },
                 { status: 409 }
