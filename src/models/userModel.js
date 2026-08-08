@@ -1,6 +1,6 @@
 import mongoose from "mongoose";
 
-const userSchema = new Schema(
+const userSchema = new mongoose.Schema(
     {
         username: {
             type: String,
@@ -17,24 +17,21 @@ const userSchema = new Schema(
             lowecase: true,
             trim: true, 
         },
-        fullName: {
-            type: String,
-            required: true,
-            trim: true, 
-            index: true
-        },
         password: {
             type: String,
             required: [true, 'Password is required']
         },
-        forgotPasswordToken: string,
+        Token: String,
+        TokenExpiry: Date,
+        forgotPasswordToken: String,
         forgotPasswordTokenExpiry: Date,
         verifyToken: String,
-        verifyTokenExpiry: Date 
+        verifyTokenExpiry: Date     
     },
     {
         timestamps: true
     }
 )
 
-export const User = mongoose.model.users || mongoose.model("users", userSchema);
+export const User =
+    mongoose.models.users || mongoose.model("users", userSchema);
