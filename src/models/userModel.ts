@@ -16,12 +16,13 @@ export interface User extends Document {
     username: string;
     email: string;
     password: string;
-    Token: string;
-    TokenExpiry: Date;
-    forgotPasswordToken: string;
-    forgotPasswordTokenExpiry: Date;
-    verifyToken: string;
-    verifyTokenExpiry: Date;
+    isVarified: boolean;
+    verifyCode:number;
+    verifyCodeExpiry: Date;
+    forgotPasswordToken?: string;
+    forgotPasswordTokenExpiry?: Date;
+    verifyToken?: string;
+    verifyTokenExpiry?: Date;
     createdAt?: Date;
     updatedAt?: Date;
 }
@@ -49,8 +50,12 @@ const UserSchema: Schema<User> = new Schema(
             trim: true,
             lowercase: true
         },
-        Token: String,
-        TokenExpiry: Date,
+        isVarified: {       
+            type: Boolean,
+            default: false
+        },
+        verifyCode: Number,
+        verifyCodeExpiry: Date,
         forgotPasswordToken: String,
         forgotPasswordTokenExpiry: Date,
         verifyToken: String,
