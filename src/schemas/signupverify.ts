@@ -15,7 +15,7 @@ export const signupVerifySchema = z.object({
         .string()
         .trim()
         .toLowerCase()
-        .email("Please enter a valid email address"),
+        .email("Please enter a valid email"),
 
     password: z
         .string()

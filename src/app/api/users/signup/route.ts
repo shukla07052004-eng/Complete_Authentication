@@ -1,45 +1,45 @@
 import connectDB from "@/lib/dbconnect";
-import { NextRequest } from "next/server"
-import { ApiResponse } from "@/types/ApiResponse";
+import { NextRequest, NextResponse } from "next/server"
 import { User } from "@/models/userModel"
 import { signupVerifySchema } from '@/schemas/signupverify'
 import bcrpt from "bcrypt"
 import { sendEmail } from "@/helper/sendVerificationEmail";
 
-export async function POST(req: NextRequest) {
+export async function POST(req: NextRequest, res: NextResponse) {
     try {
-        connectDB()
+        await connectDB()
 
 
         const body = await req.json()
 
-        const result = signupVerifySchema.safeParse(body)
+        console.log("BODY:", body);
+        console.log("BODY EMAIL:", body);
 
+        const result = signupVerifySchema.safeParse(body);
+
+        console.log("RESULT:", result);
+        console.log("RESULT SUCCESS:", result.success);
+        
         if (!result.success) {
-            return {
+            return NextResponse.json({
                 success: false,
                 message: "please enter a valid Email"
-            }
-            {
-                status: 401
-            }
+            })
+            
         }
-
+        
         const { email, username, password } = result.data
-
+        
         const existingUserByEmail = await User.findOne({ email })
         let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
 
         if (existingUserByEmail) {
-            if (existingUserByEmail.isvarified) {
-                return {
+            if (existingUserByEmail.isVarified) {
+                return NextResponse.json({
                     success: false,
                     message: "User Verification Completed Successfully: User Verified"
-                }
-                {
-                    status: 201
-                }
+                })
             } else {
                 const hashedPassword = await bcrpt.hash(password, 10)
                 existingUserByEmail.password = hashedPassword;
@@ -74,33 +74,30 @@ export async function POST(req: NextRequest) {
             const emailResponse = await sendEmail({ email, username, verifyCode })
 
             if (!emailResponse.success) {
-                return Response.json(
+                return NextResponse.json(
                     {
                         success: false,
                         message: emailResponse.message,
-                    },
-                    { status: 500 }
+                    }
                 );
             }
 
-            return Response.json(
+            return NextResponse.json(
                 {
                     success: true,
                     message: 'User registered successfully. Please verify your account.',
-                },
-                { status: 201 }
+                }
             );
 
         }
 
     } catch (error) {
         console.error('Error registering user:', error);
-        return Response.json(
+        return NextResponse.json(
             {
                 success: false,
                 message: 'Error registering user',
-            },
-            { status: 500 }
+            }
         );
     }
 }
