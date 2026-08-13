@@ -4,9 +4,14 @@ import { User } from "@/models/userModel";
 import connectDB from '@/lib/dbconnect';
 import { Loginverify } from '@/schemas/loginverify';
 import bcrypt from "bcrypt"
+import Google from "next-auth/providers/google";
 
 export const authOptions: any = {
     providers: [
+        Google({
+            clientId: process.env.GOOGLE_CLIENT_ID!,
+            clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
+        }),
         Credentials({
             // "I want to allow users to authenticate using credentials that I provide."
             // These lines Only tells AUTH.js that "My application has a credentials-based login provider."
@@ -64,7 +69,7 @@ export const authOptions: any = {
 
             return token
         },
-        async session({ session, token}: any) {
+        async session({ session, token }: any) {
             if (token) {
                 session._id = token._id;
                 session.isVerified = token.isVerified;
@@ -75,10 +80,10 @@ export const authOptions: any = {
             return session
         }
     },
-    session:{
-        strategy:"jwt" 
+    session: {
+        strategy: "jwt"
     },
-    pages:{
+    pages: {
         signIn: "/sign-in",
     }
 };
