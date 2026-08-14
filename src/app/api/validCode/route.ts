@@ -18,19 +18,19 @@ export async function POST(request: Request) {
             );
         }
 
-        const iscodeValid = user.verifyCode === code
+        const iscodeValid = user.verifyCode.toString() === code
         const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
         if (iscodeValid && isCodeNotExpired) {
-            console.log("BEFORE:", user.isVerified);
+            console.log("BEFORE:", user.isVarified);
 
-            user.isVerified = true;
+            user.isVarified = true;
 
-            console.log("AFTER CHANGE:", user.isVerified);
+            console.log("AFTER CHANGE:", user.isVarified);
 
             await user.save();
 
-            console.log("AFTER SAVE:", user.isVerified);
+            console.log("AFTER SAVE:", user.isVarified);
 
             return Response.json(
                 {

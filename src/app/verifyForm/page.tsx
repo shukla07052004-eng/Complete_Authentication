@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, FormEvent } from "react";
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -10,6 +10,7 @@ import {
   errorBoxClass,
   successBoxClass,
 } from "../../Style/fromStyles";
+import AuthCard from "@/Style/AuthCard";
 
 interface VerifyResponse {
   success: boolean;
@@ -34,13 +35,22 @@ export default function VerifyForm({ initialUsername = "" }: VerifyFormProps) {
 
 
   async function handleSubmit(e: any) {
+    e.preventDefault();
+
+    setError(null);
+    setSuccess(null);
     setIsLoading(true);
 
     try {
-      const res = await fetch("http://localhost:3000/api/validCode", {
+      const res = await fetch("/api/validCode", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ username, code }),
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          username,
+          code,
+        }),
       });
 
       const data: VerifyResponse = await res.json();
@@ -51,66 +61,69 @@ export default function VerifyForm({ initialUsername = "" }: VerifyFormProps) {
         return;
       }
 
-      setSuccess(data.message || "Email verified! Redirecting to login...");
+      setSuccess(
+        data.message || "Email verified! Redirecting to login..."
+      );
 
-      // Give the user a moment to see the success message before redirecting.
-      setTimeout(() => {
-        router.push("/login");
-      }, 1200);
+      router.push("/login");
+
     } catch {
       setError("Could not reach the server. Please check your connection.");
       setIsLoading(false);
     }
+
   }
+   
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-      {error && <div className={errorBoxClass}>{error}</div>}
-      {success && <div className={successBoxClass}>{success}</div>}
+    <AuthCard title="Verify your account" subtitle="Get started in a few seconds">
+      <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+        {error && <div className={errorBoxClass}>{error}</div>}
+        {success && <div className={successBoxClass}>{success}</div>}
 
-      <div>
-        <label htmlFor="email" className={labelClass}>
-          Username
-        </label>
-        <input
-          id="username"
-          type="username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          placeholder="janebabu"
-          className={inputClass}
-          disabled={isLoading}
-          required
-        />
-      </div>
+        <div>
+          <label htmlFor="Username" className={labelClass}>
+            Username
+          </label>
+          <input
+            id="username"
+            type="username"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            placeholder="janebabu"
+            className={inputClass}
+            disabled={isLoading}
+            required
+          />
+        </div>
 
-      <div>
-        <label htmlFor="code" className={labelClass}>
-          Verification code
-        </label>
-        <input
-          id="code"
-          type="text"
-          value={code}
-          onChange={(e) => setCode(e.target.value)}
-          placeholder="Enter the code sent to your email"
-          className={inputClass}
-          disabled={isLoading}
-          autoComplete="one-time-code"
-          required
-        />
-      </div>
+        <div>
+          <label htmlFor="code" className={labelClass}>
+            Verification code
+          </label>
+          <input
+            id="code"
+            type="text"
+            value={code}
+            onChange={(e) => setCode(e.target.value)}
+            placeholder="Enter the code sent to your email"
+            className={inputClass}
+            disabled={isLoading}
+            autoComplete="one-time-code"
+            required
+          />
+        </div>
 
-      <button type="submit" className={buttonClass} disabled={isLoading}>
-        {isLoading ? "Verifying..." : "Verify"}
-      </button>
+        <button type="submit" className={buttonClass} disabled={isLoading}>
+          {isLoading ? "Verifying..." : "Verify"}
+        </button>
 
-      <p className="text-center text-sm text-slate-500">
-        Wrong Username?{" "}
-        <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
-          Back to signup
-        </Link>
-      </p>
-    </form>
-  );
-}
+        <p className="text-center text-sm text-slate-500">
+          Wrong Username?{" "}
+          <Link href="/signup" className="font-medium text-indigo-600 hover:text-indigo-500">
+            Back to signup
+          </Link>
+        </p>
+      </form>
+    </AuthCard>
+  )}
