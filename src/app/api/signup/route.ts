@@ -4,7 +4,7 @@ import { User } from "@/models/userModel"
 import { signupVerifySchema } from '@/schemas/signupverify'
 import bcrpt from "bcrypt"
 import { sendEmail } from "@/helper/sendVerificationEmail";
-
+import { z } from "zod"
 export async function POST(req: NextRequest, res: NextResponse) {
     try {
         await connectDB()
@@ -19,17 +19,17 @@ export async function POST(req: NextRequest, res: NextResponse) {
 
         console.log("RESULT:", result);
         console.log("RESULT SUCCESS:", result.success);
-        
+
         if (!result.success) {
             return NextResponse.json({
                 success: false,
-                message: "please enter a valid Email"
+                message: result.error.issues[0].message
             })
-            
+
         }
-        
+
         const { email, username, password } = result.data
-        
+
         const existingUserByEmail = await User.findOne({ email })
         let verifyCode = Math.floor(100000 + Math.random() * 900000).toString();
 
@@ -56,7 +56,7 @@ export async function POST(req: NextRequest, res: NextResponse) {
             const expiryDate = new Date();
             expiryDate.setHours(expiryDate.getHours() + 1);
 
-            const newUser = new User(
+            const newUser = await User.create(
                 {
                     username,
                     email,
@@ -66,6 +66,9 @@ export async function POST(req: NextRequest, res: NextResponse) {
                     verifyCodeExpiry: expiryDate,
                 }
             )
+            console.log("USER CREATED:", newUser);
+            console.log("DATABASE:", User.db.name);
+            console.log("COLLECTION:", User.collection.name);
 
             await newUser.save()
 
@@ -82,14 +85,14 @@ export async function POST(req: NextRequest, res: NextResponse) {
                 );
             }
 
-            return NextResponse.json(
-                {
-                    success: true,
-                    message: 'User registered successfully. Please verify your account.',
-                }
-            );
 
         }
+        return NextResponse.json(
+            {
+                success: true,
+                message: 'User registered successfully. Please verify your account.',
+            }
+        );
 
     } catch (error) {
         console.error('Error registering user:', error);

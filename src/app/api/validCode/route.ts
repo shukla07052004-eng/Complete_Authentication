@@ -2,8 +2,8 @@ import connectDB from "@/lib/dbconnect"
 import { User } from "@/models/userModel"
 
 
-export async function Get(request: Request) {
-    await connectDB();  
+export async function POST(request: Request) {
+    await connectDB();
 
     try {
         const { username, code } = await request.json()
@@ -11,7 +11,7 @@ export async function Get(request: Request) {
 
         const user = await User.findOne({ username: decodedUsername })
 
-        if (user) {
+        if (!user) {
             return Response.json(
                 { success: false, message: 'User not found' },
                 { status: 404 }
@@ -22,11 +22,21 @@ export async function Get(request: Request) {
         const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
         if (iscodeValid && isCodeNotExpired) {
+            console.log("BEFORE:", user.isVerified);
+
             user.isVerified = true;
+
+            console.log("AFTER CHANGE:", user.isVerified);
+
             await user.save();
 
+            console.log("AFTER SAVE:", user.isVerified);
+
             return Response.json(
-                { success: true, message: 'Account verified successfully' },
+                {
+                    success: true,
+                    message: "Account verified successfully",
+                },
                 { status: 200 }
             );
         } else if (!isCodeNotExpired) {

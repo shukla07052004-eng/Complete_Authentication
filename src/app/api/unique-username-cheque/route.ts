@@ -4,20 +4,22 @@ import { success, z } from 'zod'
 import { User } from "@/models/userModel"
 
 
-const usernameQuerySchema = z.object({
-    username: signupVerifySchema
-})
+// const usernameQuerySchema = z.object({
+//     username: signupVerifySchema
+// })
 
 export async function POST(request: Request) {
     connectDB()
     try {
-        const { searchParams } = new URL(request.url);
-        const querryParam = {
-            username: searchParams.get("username")
-        }
+        // const { searchParams } = new URL(request.url);
+        // const querryParam = {
+        //     username: searchParams.get("username")
+        // }
 
-        const result = usernameQuerySchema.safeParse(querryParam)
+        const body = await request.json()
 
+        const result = signupVerifySchema.safeParse(body);
+        
         if (!result.success) {
             const usernameErrors = z.flattenError(result.error).fieldErrors.username || []
             return Response.json(
@@ -25,14 +27,14 @@ export async function POST(request: Request) {
                     success: false,
                     message:
                         usernameErrors?.length > 0
-                            ? usernameErrors.join(', ')
-                            : 'Invalid query parameters',
-                },
-                {
-                    status: 400
-                }
-            )
-        }
+                        ? usernameErrors.join(', ')
+                        : 'Invalid query parameters',
+                    },
+                    {
+                        status: 400
+                    }
+                )
+            }
         const { username } = result.data
 
         const isUserVerified = await User.findOne({
