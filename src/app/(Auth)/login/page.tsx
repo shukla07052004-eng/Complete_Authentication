@@ -9,7 +9,7 @@ import {
     labelClass,
     buttonClass,
     errorBoxClass,
-} from "../../Style/fromStyles";
+} from "../../../Style/fromStyles";
 import AuthCard from "@/Style/AuthCard";
 
 export default function LoginForm() {

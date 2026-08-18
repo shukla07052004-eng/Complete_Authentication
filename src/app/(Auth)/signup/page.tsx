@@ -8,7 +8,7 @@ import {
     labelClass,
     buttonClass,
     errorBoxClass,
-} from "../../Style/fromStyles";
+} from "@/Style/fromStyles";
 
 const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 

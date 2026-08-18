@@ -9,7 +9,7 @@ import {
   buttonClass,
   errorBoxClass,
   successBoxClass,
-} from "../../Style/fromStyles";
+} from "../../../Style/fromStyles";
 import AuthCard from "@/Style/AuthCard";
 
 interface VerifyResponse {

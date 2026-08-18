@@ -1,5 +1,5 @@
 import AuthCard from "@/Style/AuthCard";
-import SignupForm from "./signup/page";
+import SignupForm from "./(Auth)/signup/page";
 
 export default function SignupPage() {
   return (
