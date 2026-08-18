@@ -7,8 +7,8 @@ import { sendEmail } from "@/helper/sendVerificationEmail";
 import { apiResponse } from "@/types/apiResShortcut";
 
 export async function POST(req: NextRequest) {
-    connectDB()
     try {
+        await connectDB()
         const body = await req.json()
 
         const result = Loginverify.safeParse(body)
@@ -85,7 +85,7 @@ export async function POST(req: NextRequest) {
         }
     } catch (error) {
         console.log(
-            "Something went wrong, server down"
+            "Error in changing password, Better try next time", error
         )
         return apiResponse(
             {

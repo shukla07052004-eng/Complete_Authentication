@@ -9,8 +9,8 @@ import { User } from "@/models/userModel"
 // })
 
 export async function POST(request: Request) {
-    connectDB()
     try {
+        await connectDB()
         // const { searchParams } = new URL(request.url);
         // const querryParam = {
         //     username: searchParams.get("username")
