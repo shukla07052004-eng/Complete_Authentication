@@ -3,6 +3,8 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
+import AuthCard from "@/Style/AuthCard";
 import {
   inputClass,
   labelClass,
@@ -10,7 +12,12 @@ import {
   errorBoxClass,
   successBoxClass,
 } from "../../../Style/fromStyles";
-import AuthCard from "@/Style/AuthCard";
+import {
+  InputOTP,
+  InputOTPGroup,
+  InputOTPSeparator,
+  InputOTPSlot,
+} from "@/components/ui/input-otp"
 
 interface VerifyResponse {
   success: boolean;
@@ -73,7 +80,7 @@ export default function VerifyForm({ initialUsername = "" }: VerifyFormProps) {
     }
 
   }
-   
+
 
   return (
     <AuthCard title="Verify your account" subtitle="Get started in a few seconds">
@@ -82,9 +89,6 @@ export default function VerifyForm({ initialUsername = "" }: VerifyFormProps) {
         {success && <div className={successBoxClass}>{success}</div>}
 
         <div>
-          <label htmlFor="Username" className={labelClass}>
-            Username
-          </label>
           <input
             id="username"
             type="username"
@@ -98,20 +102,19 @@ export default function VerifyForm({ initialUsername = "" }: VerifyFormProps) {
         </div>
 
         <div>
-          <label htmlFor="code" className={labelClass}>
-            Verification code
-          </label>
-          <input
-            id="code"
-            type="text"
-            value={code}
-            onChange={(e) => setCode(e.target.value)}
-            placeholder="Enter the code sent to your email"
-            className={inputClass}
-            disabled={isLoading}
-            autoComplete="one-time-code"
-            required
-          />
+          <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS_AND_CHARS}>
+            <InputOTPGroup>
+              <InputOTPSlot index={0} />
+              <InputOTPSlot index={1} />
+              <InputOTPSlot index={2} />
+            </InputOTPGroup>
+            <InputOTPSeparator />
+            <InputOTPGroup>
+              <InputOTPSlot index={3} />
+              <InputOTPSlot index={4} />
+              <InputOTPSlot index={5} />
+            </InputOTPGroup>
+          </InputOTP>
         </div>
 
         <button type="submit" className={buttonClass} disabled={isLoading}>
@@ -126,4 +129,25 @@ export default function VerifyForm({ initialUsername = "" }: VerifyFormProps) {
         </p>
       </form>
     </AuthCard>
-  )}
+  )
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

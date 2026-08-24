@@ -11,7 +11,7 @@ export async function POST(req: NextRequest) {
         await connectDB()
         const body = await req.json()
 
-        const result = Loginverify.safeParse(body)
+        const result = Loginverify.safeParse(body.email)
 
         if (!result.success) {
             return apiResponse(
@@ -22,7 +22,7 @@ export async function POST(req: NextRequest) {
             )
         }
 
-        const { identifier, password } = result.data;
+        const { identifier, validCode, password } = body;
 
         const user = await User.findOne({
             Or: [
@@ -49,14 +49,13 @@ export async function POST(req: NextRequest) {
 
         await sendEmail({ email: identifier, username: identifier, verifyCode })
 
-        const iscodeValid = user.verifyCode.toString() === verifyCode
+        const iscodeValid = user.verifyCode.toString() === validCode
         const isCodeNotExpired = new Date(user.verifyCodeExpiry) > new Date();
 
         if (iscodeValid && isCodeNotExpired) {
             const hashedPassword = await bcrpt.hash(password, 10);
 
             user.password = hashedPassword;
-
             await user.save();
 
             return apiResponse(

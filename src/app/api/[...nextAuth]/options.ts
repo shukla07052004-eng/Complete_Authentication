@@ -4,11 +4,12 @@ import { User } from "@/models/userModel";
 import connectDB from '@/lib/dbconnect';
 import { Loginverify } from '@/schemas/loginverify';
 import bcrypt from "bcrypt"
-import Google from "next-auth/providers/google";
+import GoogleProvider from "next-auth/providers/google";
 
-export const authOptions: any = {
+export const { handlers, auth, signIn } = NextAuth({
+    secret: process.env.NEXT_AUTH_SECRET,
     providers: [
-        Google({
+        GoogleProvider({
             clientId: process.env.GOOGLE_CLIENT_ID!,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
         }),
@@ -23,13 +24,15 @@ export const authOptions: any = {
                 // This function is called when a user attempts to log in using the credentials provider.
                 // You can implement your own logic here to verify the user's credentials.
                 // For example, you can check the provided email and password against your database.
-                connectDB();
+                await connectDB();
                 try {
-                    const { identifier, password } = await Loginverify.parseAsync(Credentials)
+                    const { identifier, password } = await Loginverify.parseAsync(credentials)
 
                     const user = await User.findOne({
-                        email: identifier,
-                        username: identifier
+                        $or: [
+                            { email: identifier },
+                            { username: identifier }
+                        ]
                     })
                     if (!user) {
                         throw new Error('No user found with this email');
@@ -43,7 +46,15 @@ export const authOptions: any = {
                     )
 
                     if (ispasswordCorrect) {
-                        return user;
+                        return {
+                            id: user._id.toString(),
+                            _id: user._id.toString(),
+                            email: user.email,
+                            name: user.username,
+                            username: user.username,
+                            isVerified: user.isVerified,
+                            isAcceptingMessages: user.isAcceptingMessages,
+                        }
                     } else {
                         throw new Error('Incorrect password');
                     }
@@ -51,7 +62,8 @@ export const authOptions: any = {
 
 
                 } catch (err: any) {
-                    throw new Error(err);
+                    console.error(err);
+                    throw new Error(err.message);
                 }
 
 
@@ -59,12 +71,46 @@ export const authOptions: any = {
         }),
     ],
     callbacks: {
+        async signIn({ user, account }) {
+            try {
+                console.log("Google user:", user);
+                console.log("Google account:", account);
+
+                await connectDB();
+
+                const existingUser = await User.findOne({
+                    email: user.email
+                });
+
+                console.log("Existing user:", existingUser);
+
+
+                if (!existingUser) {
+                    const createdUser = await User.create({
+                        username: user.name || user.email!.split("@")[0],
+                        email: user.email,
+                        isVerified: true,
+                        verifyCode: null,
+                        verifyCodeExpiry: null
+                    });
+
+                    console.log("Created user:", createdUser);
+                }
+
+                return true;
+            } catch (error) {
+                console.error("GOOGLE SIGNIN ERROR:", error);
+                return false;
+            }
+        },
+
         async jwt({ token, user }: any) {
             if (user) {
                 token._id = user._id?.toString();
                 token.isVerified = user.isVerified;
                 token.isAcceptingMessages = user.isAcceptingMessages;
                 token.username = user.username;
+                token.email = user.email;
             }
 
             return token
@@ -75,6 +121,7 @@ export const authOptions: any = {
                 session.isVerified = token.isVerified;
                 session.isAcceptingMessages = token.isAcceptingMessages;
                 session.username = token.username;
+                session.email = token.email as string;
             }
 
             return session
@@ -86,4 +133,4 @@ export const authOptions: any = {
     pages: {
         signIn: "/sign-in",
     }
-};
+});
