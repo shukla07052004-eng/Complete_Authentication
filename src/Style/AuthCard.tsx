@@ -1,4 +1,5 @@
 import { ReactNode } from "react";
+import "@/app/globals.css";
 
 interface AuthCardProps {
   title: string;
@@ -12,15 +13,15 @@ interface AuthCardProps {
  */
 export default function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
-    <div className="flex min-h-screen items-center justify-center bg-slate-50 px-4 py-12">
-      <div className="w-full max-w-sm">
-        <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
-          <div className="mb-6 text-center">
-            <h1 className="text-2xl font-semibold tracking-tight text-slate-900">
+<div className="flex min-h-screen w-full items-center justify-center michroma-regular bg-black px-4 py-12">
+      <div className="w-full max-w-2xl">
+        <div className=" bg-black p-8 shadow-sm ">
+          <div className=" text-center">
+            <h1 className="text-3xl font-semibold tracking-tight text-white">
               {title}
             </h1>
             {subtitle && (
-              <p className="mt-1 text-sm text-slate-500">{subtitle}</p>
+              <p className="mt-1 text-md text-slate-500">{subtitle}</p>
             )}
           </div>
           {children}

@@ -6,11 +6,15 @@ import { signIn } from "next-auth/react";
 import Link from "next/link";
 import {
     inputClass,
-    labelClass,
     buttonClass,
     errorBoxClass,
 } from "../../../Style/fromStyles";
 import AuthCard from "@/Style/AuthCard";
+import { ShootingStars } from "@/components/ui/shooting-stars";
+import { StarsBackground } from "@/components/ui/stars-background";
+import { Button } from "@/components/ui/moving-border";
+
+
 
 export default function LoginForm() {
     const router = useRouter();
@@ -91,15 +95,16 @@ export default function LoginForm() {
 
     return (
         <AuthCard title="login your account" subtitle="Get started in a few seconds">
+            <div className="pointer-events-none absolute inset-0">
+                <ShootingStars />
+                <StarsBackground />
+            </div>
             {activePage === "sign-in" && (
 
                 <form onSubmit={handleSubmit} className="space-y-4" noValidate>
                     {error && <div className={errorBoxClass}>{error}</div>}
 
-                    <div>
-                        <label htmlFor="identifier" className={labelClass}>
-                            Email or username
-                        </label>
+                    <div >
                         <input
                             id="identifier"
                             type="text"
@@ -114,9 +119,6 @@ export default function LoginForm() {
                     </div>
 
                     <div>
-                        <label htmlFor="password" className={labelClass}>
-                            Password
-                        </label>
                         <input
                             id="password"
                             type="password"
@@ -146,14 +148,14 @@ export default function LoginForm() {
                 type="button"
                 onClick={handleGoogleLogin}
                 disabled={activePage === "processing"}
-                className="w-full border p-2 cursor-pointer disabled:opacity-50"
+                className="bg-white dark:bg-slate-900 text-black dark:text-white border-neutral-200 dark:border-slate-800"
             >
                 {activePage === "processing"
                     ? "Connecting to Google..."
                     : "Continue with Google"}
             </button>
             {activePage === "processing" && (
-                <div className="min-h-screen flex items-center justify-center bg-white">
+                <div className="min-h-screen flex items-center justify-center bg-black">
                     <div className="flex flex-col items-center gap-6">
                         {/* Google-style loader */}
                         <div className="relative h-12 w-12">
