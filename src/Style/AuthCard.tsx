@@ -14,7 +14,7 @@ interface AuthCardProps {
 export default function AuthCard({ title, subtitle, children }: AuthCardProps) {
   return (
 <div className="flex min-h-screen w-full items-center justify-center michroma-regular bg-black px-4 py-12">
-      <div className="w-full max-w-2xl">
+      <div className="w-full max-w-2xl ">
         <div className=" bg-black p-8 shadow-sm ">
           <div className=" text-center">
             <h1 className="text-3xl font-semibold tracking-tight text-white">

@@ -6,10 +6,17 @@ export async function POST(request: Request) {
     
     try {
         await connectDB();
-        const { username, code } = await request.json()
-        const decodedUsername = decodeURIComponent(username);
+        const { email, code } = await request.json()
+        const decodedUsername = decodeURIComponent(email);
 
-        const user = await User.findOne({ username: decodedUsername })
+        console.log(email)
+        if(code){
+            console.log("why i can see code", code)
+        }else{
+            console.log("code is not reaching at us")
+        }
+
+        const user = await User.findOne({ email: decodedUsername })
 
         if (!user) {
             return Response.json(
