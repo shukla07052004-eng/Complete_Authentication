@@ -180,7 +180,7 @@ export default function LoginForm() {
                                         Sign up
                                     </Link>
                                     <br />
-                                    <Link href="/forget-password" className="font-medium text-lg text-indigo-600 hover:text-indigo-500">
+                                    <Link href="/forget-password" className="font-medium text-sm text-cian-600 hover:text-indigo-500">
                                         Forget-Password
                                     </Link>
                                 </p>

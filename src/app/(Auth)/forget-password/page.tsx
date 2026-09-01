@@ -15,18 +15,24 @@ import { useRouter } from "next/navigation";
 import AuthCard from "@/Style/AuthCard";
 import { ShootingStars } from "@/components/customCss/shooting-stars";
 import { StarsBackground } from "@/components/customCss/stars-background";
+import { Button } from "@/components/ui/button";
+import { RefreshCwIcon } from "lucide-react";
+import { Field, FieldLabel } from "@/components/ui/field";
+import { CardContent } from "@/components/ui/card";
 
 export default function forgetPassword() {
   const router = useRouter();
 
   const [identifier, setIdentifier] = useState(""); // email OR username
   const [password, setPassword] = useState("");
+  const [confirm, setConfirm] = useState("")
   const [validCode, setValidCode] = useState("")
 
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [activePage, setActivePage] = useState("user");
   const [success, setSuccess] = useState<string | null>(null);
+  const [result, setResult] = useState("");
 
   function validate(): string | null {
     if (identifier.trim().length === 0) {
@@ -75,6 +81,15 @@ export default function forgetPassword() {
 
   }
 
+  const compareNumbers = () => {
+    if (password !== confirm) {
+     setResult("Wrong Password") ;
+    } else{
+      setResult("Password Changed successfully ")
+      router.push("/sign-in")
+  }
+  };
+
   return (
     <AuthCard title="Reset your Password" subtitle="" >
       <div className="pointer-events-none absolute inset-0">
@@ -82,7 +97,7 @@ export default function forgetPassword() {
         <StarsBackground />
       </div>
 
-      <div className="relative michroma-regular z-10 mt-4 mx-auto w-full max-w-lg rounded-2xl bg-white p-4 shadow-input md:p-8 dark:bg-black">
+      <div className="relative michroma-regular z-10 mt-4 mx-auto w-full max-w-md rounded-2xl bg-white p-4 shadow-input md:p-8 dark:bg-black">
         <div>
           <form onSubmit={handleSubmit} className="space-y-4" noValidate>
             {error && <div className={errorBoxClass}>{error}</div>}
@@ -95,7 +110,6 @@ export default function forgetPassword() {
                   value={identifier}
                   onChange={(e) => setIdentifier(e.target.value)}
                   placeholder="Email or Username"
-
                   disabled={isLoading}
                   autoComplete="username"
                   required
@@ -112,30 +126,81 @@ export default function forgetPassword() {
               </LabelInputContainer>
             </div>
 
-            
-
           </form>
-          <div className="mb-4 flex w-full min-w-sm flex-col items-center justify-center space-y-2 md:flex-row md:space-y-0 md:space-x-2">
-    
-              <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
-                value={validCode}
-                onChange={(value) => setValidCode(value)}
-              >
-                <InputOTPGroup>
-                  <InputOTPSlot index={0} />
-                  <InputOTPSlot index={1} />
-                  <InputOTPSlot index={2} />
-                </InputOTPGroup>
-                <InputOTPSeparator />
-                <InputOTPGroup>
-                  <InputOTPSlot index={3} />
-                  <InputOTPSlot index={4} />
-                  <InputOTPSlot index={5} />
-                </InputOTPGroup>
-              </InputOTP>
+
+          <div>
+
+            <CardContent>
+              <Field>
+                <div className="flex items-center justify-between">
+                  <Button variant="outline" size="xs" >
+                    <RefreshCwIcon />
+                    Resend Code
+                  </Button>
+                </div>
+                <div className="mb-4 flex w-full min-w-sm flex-col items-center justify-center space-y-2 gap-2">
+
+                  <InputOTP maxLength={6} pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
+                    value={validCode}
+                    onChange={(value) => setValidCode(value)}
+                  >
+                    <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:text-xl">
+                      <InputOTPSlot index={0} />
+                      <InputOTPSlot index={1} />
+                      <InputOTPSlot index={2} />
+                    </InputOTPGroup>
+                    <InputOTPSeparator className="mx-2" />
+                    <InputOTPGroup className="*:data-[slot=input-otp-slot]:h-12 *:data-[slot=input-otp-slot]:w-11 *:data-[slot=input-otp-slot]:text-xl">
+                      <InputOTPSlot index={3} />
+                      <InputOTPSlot index={4} />
+                      <InputOTPSlot index={5} />
+                    </InputOTPGroup>
+                  </InputOTP>
+                </div>
+              </Field>
+            </CardContent>
 
           </div>
-          
+
+          <div>
+            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
+              {error && <div className={errorBoxClass}>{error}</div>}
+
+              <div className="mb-4 flex w-full min-w-sm flex-col items-center justify-center space-y-2 md:flex-row md:space-y-0 md:space-x-2">
+                <LabelInputContainer>
+                  <Input
+                    id="Password"
+                    type="string"
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Password"
+                    disabled={isLoading}
+                    required
+                  />
+                  <Input
+                    id="Confirm-Pass"
+                    type="string"
+                    value={confirm}
+                    onChange={(e) => setConfirm(e.target.value)}
+                    placeholder="Confirm Password"
+                    required
+                  />
+
+                  <button
+                    className="group/btn relative cursor-pointer block h-10 w-full ounded-md bg-gradient-to-br from-black to-neutral-600 font-medium text-white shadow-[0px_1px_0px_0px_#ffffff40_inset,0px_-1px_0px_0px_#ffffff40_inset] dark:bg-zinc-800 dark:from-zinc-900 dark:to-zinc-900 dark:shadow-[0px_1px_0px_0px_#27272a_inset,0px_-1px_0px_0px_#27272a_inset]"
+                    type="submit"
+                    onClick={compareNumbers}
+                  >
+                    Submit &rarr;
+                    <BottomGradient />
+                  </button>
+                  <p>{result}</p>
+
+                </LabelInputContainer>
+              </div>
+
+            </form>
+          </div>
 
         </div>
       </div>
