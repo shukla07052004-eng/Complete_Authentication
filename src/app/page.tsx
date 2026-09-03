@@ -1,9 +1,38 @@
-import React from 'react'
+"use client";
+import { AppProvider } from "@/context/AppContext";
+import { EscapeProvider } from "@/context/EscapeContext";
+import { ToastProvider } from "@/context/ToastContext";
 
-function page() {
+import EscapeEnabledAppShell from "@/components/layout/ProtectedAppShell";
+
+
+export default function ProtectedLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   return (
-    <div>page</div>
-  )
-}
+    <div className="min-h-screen">
 
-export default page
+      {/* Navbar */}
+      <nav>
+        My App
+      </nav>
+
+      <div className="flex">
+
+        {/* Sidebar */}
+        <aside>
+          sidebar
+        </aside>
+
+        {/* Page content */}
+        <main className="flex-1">
+          {children}
+        </main>
+
+      </div>
+
+    </div>
+  );
+}
