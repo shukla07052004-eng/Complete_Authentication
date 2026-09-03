@@ -1,38 +1,7 @@
-"use client";
-import { AppProvider } from "@/context/AppContext";
-import { EscapeProvider } from "@/context/EscapeContext";
-import { ToastProvider } from "@/context/ToastContext";
+// app/page.tsx
 
-import EscapeEnabledAppShell from "@/components/layout/ProtectedAppShell";
+import { redirect } from "next/navigation";
 
-
-export default function ProtectedLayout({
-  children,
-}: {
-  children: React.ReactNode;
-}) {
-  return (
-    <div className="min-h-screen">
-
-      {/* Navbar */}
-      <nav>
-        My App
-      </nav>
-
-      <div className="flex">
-
-        {/* Sidebar */}
-        <aside>
-          sidebar
-        </aside>
-
-        {/* Page content */}
-        <main className="flex-1">
-          {children}
-        </main>
-
-      </div>
-
-    </div>
-  );
+export default function Page() {
+    redirect("/dashboard");
 }

@@ -1,5 +1,5 @@
 import React from 'react'
-import { useNavigate } from 'react-router-dom'
+import { useRouter } from "next/navigation";
 import { BUSINESS } from '../../data/store.js'
 
 export default function Topbar({
@@ -9,7 +9,7 @@ export default function Topbar({
   searchRef,
   compact = false,
 }) {
-  const navigate = useNavigate()
+  const Router = useRouter();
   const now = new Date().toLocaleDateString('en-IN', {
     weekday: 'short',
     day: 'numeric',
@@ -35,7 +35,7 @@ export default function Topbar({
       }}
     >
       <div
-        onClick={() => navigate('/dashboard')}
+        onClick={() => Router.push('/dashboard')}
         onMouseDown={(event) => event.preventDefault()}
         style={{ display: 'flex', alignItems: 'center', gap: 8, marginRight: compact ? 10 : 18, cursor: 'pointer', userSelect: 'none' }}
       >

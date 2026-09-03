@@ -1,5 +1,5 @@
 import React, { memo, useMemo } from 'react'
-import { useLocation } from 'react-router-dom'
+import { usePathname } from "next/navigation";
 import { BUSINESS } from '../../data/store.js'
 import { ERP_SIDEBAR_ITEMS } from '../../data/erpModules.js'
 
@@ -14,8 +14,8 @@ function Sidebar({
   openSectionId = null,
   onActiveIndexChange,
 }) {
-  const location = useLocation()
-  const activePath = location.pathname
+  const pathname = usePathname()
+  const activePath = pathname
   const activeSectionId = useMemo(
     () => NAV_ITEMS.find((item) => item.children?.some((child) => activePath === child.path || activePath.startsWith(`${child.path}/`)))?.id ?? null,
     [activePath],

@@ -1,4 +1,4 @@
-import { AI_TREE } from '../features/ai-intelligence/data/aiNavigation.js'
+
 
 export const REPORT_MENU_ITEMS = [
   { id: 'sales-reports', path: '/reports/sales', label: 'Sales Reports', reportId: 'billwiseprofit' },
@@ -9,10 +9,10 @@ export const REPORT_MENU_ITEMS = [
   { id: 'expense-reports', path: '/reports/expenses', label: 'Expense Reports', reportId: 'expensesanalysis' },
 ]
 
-const AI_INTELLIGENCE_CHILDREN = [
-  { id: 'ai-intelligence-overview', path: '/ai-intelligence', label: 'AI Intelligence Overview' },
-  ...AI_TREE.map((node) => ({ id: node.id, path: `/ai-intelligence/${node.id}`, label: node.label })),
-]
+// const AI_INTELLIGENCE_CHILDREN = [
+//   { id: 'ai-intelligence-overview', path: '/ai-intelligence', label: 'AI Intelligence Overview' },
+//   ...AI_TREE.map((node) => ({ id: node.id, path: `/ai-intelligence/${node.id}`, label: node.label })),
+// ]
 
 export const ERP_SIDEBAR_ITEMS = [
   { id: 'dashboard', path: '/dashboard', label: 'Dashboard', icon: 'dashboard' },
@@ -22,7 +22,7 @@ export const ERP_SIDEBAR_ITEMS = [
   { id: 'items', path: '/items', label: 'Items', icon: 'inventory' },
   { id: 'expense', path: '/expense', label: 'Expenses', icon: 'wallet' },
   { id: 'reports', label: 'Reports', icon: 'analytics', children: REPORT_MENU_ITEMS },
-  { id: 'ai-intelligence', label: 'AI Intelligence', icon: 'spark', children: AI_INTELLIGENCE_CHILDREN },
+  // { id: 'ai-intelligence', label: 'AI Intelligence', icon: 'spark', children: AI_INTELLIGENCE_CHILDREN },
   {
     id: 'banking',
     label: 'Banking',

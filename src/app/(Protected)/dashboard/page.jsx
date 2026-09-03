@@ -11,7 +11,6 @@ import { Avatar, Badge } from '@/components/frontendUi/index.js'
 import Table from '@/components/frontendUi/Table.jsx'
 import InvoiceView from '@/components/layout/InvoiceView.jsx'
 import useFocusZone from '@/hooks/useFocusZone.js'
-import { IndexOptions } from 'mongoose'
 
 
 const DASHBOARD_TARGETS_STORAGE_KEY = 'bizledger.dashboard.targets'
@@ -22,8 +21,8 @@ const CustomTooltip = ({ active, payload, label }) => {
   return (
     <div style={{ background: '#111', color: '#fff', padding: '10px 14px', borderRadius: 6, fontSize: 12, fontFamily: 'var(--font)' }}>
       <div style={{ marginBottom: 4, color: '#888' }}>{label}</div>
-      {payload.map(({entry, index}) => (
-        <div key={index} style={{ color: entry.color, marginTop: 2 }}>{entry.name}: {fmt(entry.value)}</div>
+      {payload.map((entry, index) => (
+        <div key={entry.dataKey ?? index} style={{ color: entry.color, marginTop: 2 }}>{entry.name}: {fmt(entry.value)}</div>
       ))}
     </div>
   )
@@ -107,7 +106,7 @@ export default function Dashboard() {
   return (
     <div className="animate-slide">
       {viewInvoice && <InvoiceView invoice={viewInvoice} onClose={() => setViewInvoice(null)} />}
-      <ErpImportModal open={importOpen} onClose={() => setImportOpen(false)} defaultKind="complete" />
+      {/* <ErpImportModal open={importOpen} onClose={() => setImportOpen(false)} defaultKind="complete" /> */}
 
       <PageHeader
         title="Dashboard"

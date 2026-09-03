@@ -1,5 +1,5 @@
+"use client"
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react'
-import { Navigate, Route, Routes, useLocation, useNavigate } from 'react-router-dom'
 import { AppProvider } from '@/context/AppContext'
 import { ToastProvider } from '@/context/ToastContext'
 import { useToast } from '@/context/ToastContext'
@@ -9,6 +9,7 @@ import useFocusManager from '@/hooks/useFocusManager'
 import Sidebar, { NAV_ITEMS } from '@/components/layout/Sidebar'
 import Topbar from '@/components/layout/Topbar'
 import { scrollElementIntoView } from '@/utils/focusScroll'
+
 // import Dashboard from '@/pages/Dashboard'
 // import SalesPage from './pages/Sales.jsx'
 // import PurchasePage from './pages/Purchase.jsx'
@@ -21,7 +22,8 @@ import { scrollElementIntoView } from '@/utils/focusScroll'
 // import ExpenseManagementPage from './pages/ExpenseManagementPage.jsx'
 // import { BankingDashboardPage, BankingModulePage, ItemsMasterPage, UtilitiesDashboardPage, UtilityModulePage } from './pages/WorkspaceModules.jsx'
 import { findSidebarSectionByPath, getVisibleSidebarItems } from '@/data/erpModules'
-import path from 'node:path'
+import { Router } from 'lucide-react'
+import { usePathname } from "next/navigation";
 
 // import {
 //   DuesPage,
@@ -95,13 +97,13 @@ function parentIdForPath(pathname) {
     return findSidebarSectionByPath(pathname)
 }
 
-// function getPageFocusTarget(pathname) {
-//     if (pathname === '/ai-intelligence' || pathname.startsWith('/ai-intelligence/')) {
-//         return '#ai-intelligence-tree [data-focus-item="true"]'
-//     }
+function getPageFocusTarget(pathname) {
+    if (pathname === '/ai-intelligence' || pathname.startsWith('/ai-intelligence/')) {
+        return '#ai-intelligence-tree [data-focus-item="true"]'
+    }
 
-//     return PAGE_FOCUS_TARGETS[pathname] ?? PAGE_FOCUS_TARGETS["/dashboard"];
-// }
+    return PAGE_FOCUS_TARGETS[pathname] ?? PAGE_FOCUS_TARGETS['/dashboard']
+}
 
 function sidebarItemIdForPath(pathname) {
     const normalizedPath = pathname === '/' ? '/dashboard' : pathname
@@ -120,11 +122,12 @@ function parentIdForSidebarItemId(itemId) {
     return NAV_ITEMS.find((item) => item.children?.some((child) => child.id === itemId))?.id ?? null
 }
 
-export default function App({ onReady }) {
+export default function App({ children }) {
     return (
         <ToastProvider>
             <AppProvider>
-                <EscapeEnabledAppShell onReady={onReady} />
+                <EscapeEnabledAppShell />
+                {children}
             </AppProvider>
         </ToastProvider>
     )
@@ -138,32 +141,32 @@ function LazyModule({ children }) {
     )
 }
 
-export default function EscapeEnabledAppShell({ onReady }) {
-    const navigate = useNavigate()
-    const location = useLocation()
+
+function EscapeEnabledAppShell({ children }) {
+    const pathname = usePathname();
     const focusManager = useFocusManager()
     const mainRef = useRef(null)
     const forceSidebarRestoreRef = useRef(false)
 
-    const focusMainTarget = useCallback((path = location.pathname) => {
+    const focusMainTarget = useCallback((path = pathname) => {
         const selector = getPageFocusTarget(path)
-        
+
         if (!selector) return false
 
         requestAnimationFrame(() => {
             const container = mainRef.current
             if (!container) return
-            const target= document.querySelector(selector);
+            const target = document.querySelector(selector);
             if (target instanceof HTMLElement && document.activeElement !== target) {
                 target.focus({ preventScroll: true })
             }
         })
 
         return true
-    }, [location.pathname])
+    }, [pathname])
 
 
-///// sidebar conent start from hear-------------------------------------------------------------------------------------------
+    ///// sidebar conent start from hear-------------------------------------------------------------------------------------------
 
     const ensureSafeFocus = useCallback(() => {
         requestAnimationFrame(() => {
@@ -175,9 +178,9 @@ export default function EscapeEnabledAppShell({ onReady }) {
 
             if (!invalidFocus) return
             if (focusManager.restoreFocus()) return
-            focusMainTarget(location.pathname)
+            focusMainTarget(pathname)
         })
-    }, [focusMainTarget, focusManager, location.pathname])
+    }, [focusMainTarget, focusManager, pathname])
 
 
 
@@ -191,10 +194,10 @@ export default function EscapeEnabledAppShell({ onReady }) {
         if (activeKey.startsWith('sidebar-') && focusManager.focus(activeKey)) {
             return true
         }
-        const sidebarItemId = sidebarItemIdForPath(location.pathname)
+        const sidebarItemId = sidebarItemIdForPath(pathname)
         if (sidebarItemId && focusManager.focus(`sidebar-${sidebarItemId}`)) return true
         return focusManager.focus('sidebar-dashboard')
-    }, [focusManager, location.pathname])
+    }, [focusManager, pathname])
 
     const handleUnhandledEscape = useCallback(() => {
         const activeElement = document.activeElement
@@ -202,7 +205,7 @@ export default function EscapeEnabledAppShell({ onReady }) {
 
         if (focusInsideSidebar) {
             const activeKey = String(focusManager.activeFocusKey || '')
-            const currentSidebarId = activeKey.startsWith('sidebar-') ? activeKey.replace('sidebar-', '') : sidebarItemIdForPath(location.pathname)
+            const currentSidebarId = activeKey.startsWith('sidebar-') ? activeKey.replace('sidebar-', '') : sidebarItemIdForPath(pathname)
             const parentId = currentSidebarId ? parentIdForSidebarItemId(currentSidebarId) : null
             if (parentId) {
                 focusManager.focus(`sidebar-${parentId}`)
@@ -211,52 +214,52 @@ export default function EscapeEnabledAppShell({ onReady }) {
             return focusActiveSidebarItem()
         }
 
-        if (!isLockedWorkspacePath(location.pathname) && !focusInsideSidebar) {
+        if (!isLockedWorkspacePath(pathname) && !focusInsideSidebar) {
             return focusActiveSidebarItem()
         }
 
         const canGoBack = typeof window !== 'undefined' && Number(window.history.state?.idx) > 0
         if (canGoBack) {
             forceSidebarRestoreRef.current = true
-            navigate(-1)
+            Router.back()
             return true
         }
-        if (location.pathname !== '/' && location.pathname !== '/dashboard') {
+        if (pathname !== '/' && pathname !== '/dashboard') {
             forceSidebarRestoreRef.current = true
-            navigate('/dashboard')
+            Router.push('/dashboard')
             return true
         }
         focusMainTarget('/dashboard')
         return true
-    }, [focusActiveSidebarItem, focusMainTarget, focusManager, location.pathname, navigate])
+    }, [focusActiveSidebarItem, focusMainTarget, focusManager, pathname])
 
     return (
         <EscapeProvider onUnhandledEscape={handleUnhandledEscape} onAfterEscape={ensureSafeFocus}>
             <AppShell
-                onReady={onReady}
                 focusManager={focusManager}
                 mainRef={mainRef}
                 focusMainTarget={focusMainTarget}
                 forceSidebarRestoreRef={forceSidebarRestoreRef}
-            />
+            >
+                {children}
+            </AppShell>
         </EscapeProvider>
     )
 }
-
-function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSidebarRestoreRef }) {
+function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreRef, children }) {
     const toast = useToast()
     const [sidebarVisible, setSidebarVisible] = useState(false)
     const [shortcutSettings, setShortcutSettings] = useState(() => {
+        if (typeof window === 'undefined') return DEFAULT_SHORTCUTS
         const saved = window.localStorage.getItem(KEYBOARD_SETTINGS_STORAGE_KEY)
         return saved ? { ...DEFAULT_SHORTCUTS, ...JSON.parse(saved) } : DEFAULT_SHORTCUTS
     })
-    const location = useLocation()
-    const navigate = useNavigate()
-    const [openSidebarSectionId, setOpenSidebarSectionId] = useState(() => findSidebarSectionByPath(location.pathname))
+    const pathname = usePathname();
+    const [openSidebarSectionId, setOpenSidebarSectionId] = useState(() => findSidebarSectionByPath(pathname))
     const visibleSidebarItems = useMemo(() => getVisibleSidebarItems(openSidebarSectionId), [openSidebarSectionId])
     const [sidebarIndex, setSidebarIndex] = useState(0)
     const [routeFocusMode, setRouteFocusMode] = useState('idle')
-    const isLockedWorkspaceRoute = isLockedWorkspacePath(location.pathname)
+    const isLockedWorkspaceRoute = isLockedWorkspacePath(pathname)
     const searchRef = useRef(null)
     const initialContentFocusSkippedRef = useRef(false)
 
@@ -297,26 +300,25 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
 
     useEffect(() => {
         const timer = setTimeout(() => setSidebarVisible(true), 200)
-        onReady?.()
         return () => clearTimeout(timer)
     }, [])
 
     useEffect(() => {
-        const parentSectionId = findSidebarSectionByPath(location.pathname)
+        const parentSectionId = findSidebarSectionByPath(pathname)
         if (parentSectionId) setOpenSidebarSectionId(parentSectionId)
-    }, [location.pathname])
+    }, [pathname])
 
     useEffect(() => {
-        const activePath = location.pathname === '/' ? '/dashboard' : location.pathname
+        const activePath = pathname === '/' ? '/dashboard' : pathname
         const activeItemIndex = visibleSidebarItems.findIndex((item) => item.path === activePath || item.id === parentIdForPath(activePath))
         setSidebarIndex(activeItemIndex >= 0 ? activeItemIndex : 0)
-    }, [location.pathname, visibleSidebarItems])
+    }, [pathname, visibleSidebarItems])
 
     useEffect(() => {
         if (routeFocusMode !== 'content') return
-        focusMainTarget(location.pathname)
+        focusMainTarget(pathname)
         setRouteFocusMode('idle')
-    }, [focusMainTarget, location.pathname, routeFocusMode])
+    }, [focusMainTarget, pathname, routeFocusMode])
 
     useEffect(() => {
         if (isLockedWorkspaceRoute) return
@@ -329,8 +331,8 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
         const mainElement = mainRef.current
         const focusInsideMain = activeElement instanceof HTMLElement && mainElement?.contains(activeElement)
         if (focusInsideMain) return
-        focusMainTarget(location.pathname)
-    }, [focusMainTarget, isLockedWorkspaceRoute, location.pathname, mainRef])
+        focusMainTarget(pathname)
+    }, [focusMainTarget, isLockedWorkspaceRoute, pathname, mainRef])
 
     useEffect(() => {
         if (isLockedWorkspaceRoute) return
@@ -338,16 +340,16 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
 
         if (forceSidebarRestoreRef?.current) {
             forceSidebarRestoreRef.current = false
-            const targetId = sidebarItemIdForPath(location.pathname) ?? 'dashboard'
+            const targetId = sidebarItemIdForPath(pathname) ?? 'dashboard'
             focusSidebarItemById(targetId)
             return
         }
-    }, [focusSidebarItemById, forceSidebarRestoreRef, isLockedWorkspaceRoute, location.pathname, sidebarVisible])
+    }, [focusSidebarItemById, forceSidebarRestoreRef, isLockedWorkspaceRoute, pathname, sidebarVisible])
 
     const handleSidebarNavigate = useCallback((path) => {
         setRouteFocusMode('content')
-        navigate(path)
-    }, [navigate])
+        Router.push(path)
+    })
 
     const handleSidebarToggle = useCallback((sectionId) => {
         setOpenSidebarSectionId((current) => current === sectionId ? null : sectionId)
@@ -395,13 +397,13 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
         shortcuts: shortcutSettings,
         bindings: [
             { id: 'focusSearch', allowInEditable: true, handler: () => searchRef.current?.focus({ preventScroll: true }) },
-            { id: 'newInvoice', allowInEditable: true, handler: () => navigate('/sales/new') },
+            { id: 'newInvoice', allowInEditable: true, handler: () => Router.push('/sales/new') },
             {
                 id: 'navSales',
                 allowInEditable: true,
                 handler: () => {
                     setRouteFocusMode('content')
-                    navigate('/sales')
+                    Router.push('/sales')
                 },
             },
             {
@@ -409,7 +411,7 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
                 allowInEditable: true,
                 handler: () => {
                     setRouteFocusMode('content')
-                    navigate('/purchase')
+                    Router.push('/purchase')
                 },
             },
             {
@@ -417,7 +419,7 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
                 allowInEditable: true,
                 handler: () => {
                     setRouteFocusMode('content')
-                    navigate('/reports')
+                    Router.push('/reports')
                 },
             },
             {
@@ -496,7 +498,7 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
                         focusSidebarItemById(current.id)
                         return
                     }
-                    handleSidebarNavigate(current.path || '/dashboard')
+                    handleSidebarRouter.push(current.path || '/dashboard')
                 },
             },
         ],
@@ -506,14 +508,28 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
         <div style={{ minHeight: '100vh', height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }}>
             {!isLockedWorkspaceRoute && (
                 <Topbar
-                    onNewInvoice={() => navigate('/sales/new')}
-                    onNewPurchase={() => navigate('/purchase/new')}
-                    onNewParty={() => navigate('/parties/new')}
+                    onNewInvoice={() => Router.push('/sales/new')}
+                    onNewPurchase={() => Router.push('/purchase/new')}
+                    onNewParty={() => Router.push('/parties/new')}
                     searchRef={searchRef}
                 />
             )}
 
-           
+            <div style={{ display: 'flex', flex: 1, minHeight: 0 }}>
+                {!isLockedWorkspaceRoute && (
+                    <div className={sidebarVisible ? 'sidebar-appear' : ''} style={{ flexShrink: 0, width: 'var(--sidebar-w)' }}>
+                        <Sidebar
+                            onNavigate={handleSidebarNavigate}
+                            onToggleSection={handleSidebarToggle}
+                            focusManager={focusManager}
+                            activeIndex={sidebarIndex}
+                            visibleItems={visibleSidebarItems}
+                            openSectionId={openSidebarSectionId}
+                            onActiveIndexChange={setSidebarIndex}
+                        />
+                    </div>
+                )}
+
 
                 <main
                     id="main-content"
@@ -531,41 +547,7 @@ function AppShell({ onReady, focusManager, mainRef, focusMainTarget, forceSideba
                         background: isLockedWorkspaceRoute ? '#fff' : undefined,
                     }}
                 >
-                    <Routes>
-                        <Route path="/" element={<Dashboard />} />
-                        <Route path="/dashboard" element={<Dashboard />} />
-                        <Route path="/sales" element={<SalesPage onNewInvoice={() => navigate('/sales/new')} />} />
-                        <Route path="/purchase/new" element={<NewPurchasePage />} />
-                        <Route path="/sales/new" element={<NewInvoicePage />} />
-                        <Route path="/parties" element={<PartiesPage />} />
-                        <Route path="/parties/new" element={<PartyFormPage />} />
-                        <Route path="/purchase" element={<PurchasePage onNewPurchase={() => navigate('/purchase/new')} />} />
-                        <Route path="/expense" element={<ExpenseManagementPage />} />
-                        <Route path="/dues" element={<DuesPage />} />
-                        <Route path="/workers" element={<WorkersPage />} />
-                        <Route path="/reports" element={<ReportsPage />} />
-                        <Route path="/reports/sales" element={<ReportDetailPage reportId="billwiseprofit" />} />
-                        <Route path="/reports/purchase" element={<ReportDetailPage reportId="statement" />} />
-                        <Route path="/reports/profit" element={<ReportDetailPage reportId="profit-loss" />} />
-                        <Route path="/reports/expenses" element={<ReportDetailPage reportId="expensesanalysis" />} />
-                        <Route path="/reports/billwiseprofit" element={<ReportDetailPage reportId="billwiseprofit" />} />
-                        <Route path="/reports/statement" element={<ReportDetailPage reportId="statement" />} />
-                        <Route path="/reports/gst" element={<ReportDetailPage reportId="gst" />} />
-                        <Route path="/reports/expensesanalysis" element={<ReportDetailPage reportId="expensesanalysis" />} />
-                        <Route path="/reports/profit-loss" element={<ReportDetailPage reportId="profit-loss" />} />
-                        <Route path="/reports/stock" element={<ReportDetailPage reportId="stock" />} />
-                        <Route path="/reports/cashflow" element={<ReportDetailPage reportId="cashflow" />} />
-                        <Route path="/reports/balance-sheet" element={<ReportDetailPage reportId="balance-sheet" />} />
-                        <Route path="/items" element={<ItemsMasterPage />} />
-                        <Route path="/ai-intelligence/*" element={<LazyModule><AiIntelligencePage /></LazyModule>} />
-                        <Route path="/ai-reports/*" element={<Navigate to="/ai-intelligence/sales-prediction/sales-forecast" replace />} />
-                        <Route path="/banking" element={<Navigate to="/banking/loan-accounts" replace />} />
-                        <Route path="/banking/:moduleId" element={<BankingModulePage />} />
-                        <Route path="/utilities" element={<Navigate to="/utilities/manage-companies" replace />} />
-                        <Route path="/utilities/:moduleId" element={<UtilityModulePage />} />
-                        <Route path="/settings/keyboard" element={<KeyboardSettingsPage shortcuts={shortcutSettings} onSave={handleSaveShortcuts} />} />
-                        <Route path="*" element={<Dashboard />} />
-                    </Routes>
+                    {children}
                 </main>
             </div>
         </div>
