@@ -1,242 +1,447 @@
-import { useCallback, useEffect, useMemo, useRef } from 'react'
-import { scrollElementIntoView } from '../utils/focusScroll.js'
+import { useCallback, useEffect, useRef, useState } from "react";
 
-const DEFAULT_SELECTOR = '[data-focus-item="true"]'
+const clamp = (value, min, max) =>
+  Math.min(Math.max(value, min), max);
 
-const isEditable = (node) => {
-  if (!(node instanceof HTMLElement)) return false
-  const tag = node.tagName
-  return node.isContentEditable || tag === 'INPUT' || tag === 'TEXTAREA' || tag === 'SELECT'
-}
-
-const isFocusableItem = (node) => {
-  if (!(node instanceof HTMLElement)) return false
-  if (node.matches('[disabled],[aria-hidden="true"],[hidden]')) return false
-  if (node.getAttribute('tabindex') === '-1' && node.dataset.focusItem !== 'true') return false
-  return node.isConnected && node.getClientRects().length > 0
-}
-
-const getItemCenter = (rect) => ({
-  x: rect.left + (rect.width / 2),
-  y: rect.top + (rect.height / 2),
-})
-
-const getGridTargetIndex = (items, currentIndex, key, columns) => {
-  if (!items.length) return null
-
-  const current = items[currentIndex]
-  if (!(current instanceof HTMLElement)) return null
-
-  if (typeof columns === 'number' && columns > 1) {
-    switch (key) {
-      case 'ArrowRight':
-        return currentIndex + 1
-      case 'ArrowLeft':
-        return currentIndex - 1
-      case 'ArrowDown':
-        return currentIndex + columns
-      case 'ArrowUp':
-        return currentIndex - columns
-      default:
-        return null
-    }
-  }
-
-  const currentRect = current.getBoundingClientRect()
-  const currentCenter = getItemCenter(currentRect)
-  let bestIndex = null
-  let bestScore = Number.POSITIVE_INFINITY
-
-  items.forEach((item, index) => {
-    if (index === currentIndex || !(item instanceof HTMLElement)) return
-
-    const rect = item.getBoundingClientRect()
-    const center = getItemCenter(rect)
-    const dx = center.x - currentCenter.x
-    const dy = center.y - currentCenter.y
-
-    if (key === 'ArrowRight' && dx <= 0) return
-    if (key === 'ArrowLeft' && dx >= 0) return
-    if (key === 'ArrowDown' && dy <= 0) return
-    if (key === 'ArrowUp' && dy >= 0) return
-
-    const primaryDistance = key === 'ArrowLeft' || key === 'ArrowRight' ? Math.abs(dx) : Math.abs(dy)
-    const crossDistance = key === 'ArrowLeft' || key === 'ArrowRight' ? Math.abs(dy) : Math.abs(dx)
-    const score = (primaryDistance * 10) + crossDistance
-
-    if (score < bestScore) {
-      bestScore = score
-      bestIndex = index
-    }
-  })
-
-  return bestIndex
-}
-
-export default function useFocusZone({
-  orientation = 'vertical',
+export default function useFocusList({
+  count = 0,
+  initialIndex = 0,
+  orientation = "vertical",
   columns = 1,
-  selector = DEFAULT_SELECTOR,
-  disabled = false,
-  allowArrowInEditable = false,
-  onActiveIndexChange,
-  onSelect,
+  loop = false,
+  enabled = true,
+  onEnter,
   onEscape,
-  onLeaveBackward,
-  onLeaveForward,
+  onActiveIndexChange,
 } = {}) {
-  const containerRef = useRef(null)
-  const activeIndexRef = useRef(0)
-  const focusRafRef = useRef(null)
+  const itemRefs = useRef([]);
+  const [currentIndex, setCurrentIndexState] = useState(
+    clamp(initialIndex, 0, Math.max(count - 1, 0))
+  );
 
-  const getItems = useCallback(() => {
-    const container = containerRef.current
-    if (!container) return []
-    return Array.from(container.querySelectorAll(selector)).filter(isFocusableItem)
-  }, [selector])
-
-  const syncTabIndices = useCallback((preferredIndex = activeIndexRef.current) => {
-    const items = getItems()
-    if (!items.length) {
-      activeIndexRef.current = 0
-      return []
-    }
-
-    const nextIndex = Math.min(Math.max(preferredIndex, 0), items.length - 1)
-    activeIndexRef.current = nextIndex
-
-    items.forEach((item, index) => {
-      item.tabIndex = index === nextIndex ? 0 : -1
-    })
-
-    return items
-  }, [getItems])
-
-  const focusItem = useCallback((index, options = {}) => {
-    const items = syncTabIndices(index)
-    const item = items[activeIndexRef.current]
-    if (!item) return false
-    if (focusRafRef.current) cancelAnimationFrame(focusRafRef.current)
-    focusRafRef.current = requestAnimationFrame(() => {
-      if (document.activeElement !== item) {
-        item.focus({ preventScroll: options.preventScroll ?? true })
-      }
-      scrollElementIntoView(item, { behavior: options.behavior, block: options.block ?? 'nearest' })
-    })
-    return true
-  }, [syncTabIndices])
-
-  const focusFirst = useCallback(() => focusItem(0), [focusItem])
-  const focusCurrent = useCallback(() => focusItem(activeIndexRef.current), [focusItem])
-
+  /*
+   * Keep index valid when number of items changes
+   */
   useEffect(() => {
-    if (disabled) return undefined
+    setCurrentIndexState((current) =>
+      clamp(current, 0, Math.max(count - 1, 0))
+    );
+  }, [count]);
 
-    const container = containerRef.current
-    if (!container) return undefined
+  /*
+   * Register DOM element
+   */
+  const register = useCallback(
+    (index) => (node) => {
+      itemRefs.current[index] = node;
+    },
+    []
+  );
 
-    const handleFocusIn = (event) => {
-      const target = event.target instanceof HTMLElement ? event.target.closest(selector) : null
-      if (!(target instanceof HTMLElement)) return
-      const items = getItems()
-      const index = items.indexOf(target)
-      if (index === -1) return
-      activeIndexRef.current = index
-      onActiveIndexChange?.(index, target, items)
-      items.forEach((item, itemIndex) => {
-        item.tabIndex = itemIndex === index ? 0 : -1
-      })
-    }
+  /*
+   * Focus a particular item
+   */
+  const focusItem = useCallback(
+    (index) => {
+      if (!count) return false;
 
-    const handleKeyDown = (event) => {
-      if (event.altKey || event.ctrlKey || event.metaKey) return
-      if (isEditable(event.target) && !allowArrowInEditable) return
+      const safeIndex = clamp(
+        index,
+        0,
+        Math.max(count - 1, 0)
+      );
 
-      const currentItem = event.target instanceof HTMLElement ? event.target.closest(selector) : null
-      if (!(currentItem instanceof HTMLElement)) return
+      setCurrentIndexState(safeIndex);
 
-      const items = getItems()
-      const currentIndex = items.indexOf(currentItem)
-      if (currentIndex === -1) return
+      requestAnimationFrame(() => {
+        const node = itemRefs.current[safeIndex];
 
-      if (event.key === 'Enter' || event.key === ' ') {
-        onSelect?.(currentItem, currentIndex, event)
-      }
-
-      if (event.key === 'Escape' && onEscape) {
-        const handled = onEscape(event)
-        if (handled !== false) {
-          event.preventDefault()
+        if (node instanceof HTMLElement) {
+          node.focus({
+            preventScroll: true,
+          });
         }
-        return
-      }
+      });
 
-      if (event.key === 'ArrowLeft' && orientation === 'vertical' && onLeaveBackward) {
-        const handled = onLeaveBackward(currentItem, currentIndex, event)
-        if (handled !== false) {
-          event.preventDefault()
+      return true;
+    },
+    [count]
+  );
+
+  /*
+   * Set index.
+   *
+   * This is intentionally exposed as a function because
+   * your old ReportsWorkspace uses:
+   *
+   * focusList.setCurrentIndex(...)
+   */
+  const setCurrentIndex = useCallback(
+    (index, shouldFocus = true) => {
+      const safeIndex = clamp(
+        index,
+        0,
+        Math.max(count - 1, 0)
+      );
+
+      setCurrentIndexState(safeIndex);
+
+      if (shouldFocus) {
+        requestAnimationFrame(() => {
+          const node = itemRefs.current[safeIndex];
+
+          if (node instanceof HTMLElement) {
+            node.focus({
+              preventScroll: true,
+            });
+          }
+        });
+      }
+    },
+    [count]
+  );
+
+  /*
+   * Move to next / previous item
+   */
+  const move = useCallback(
+    (step) => {
+      if (!count) return;
+
+      setCurrentIndexState((current) => {
+        let next = current + step;
+
+        if (loop) {
+          next = (next + count) % count;
+        } else {
+          next = clamp(next, 0, count - 1);
         }
-        return
-      }
 
-      if (event.key === 'ArrowRight' && orientation === 'vertical' && onLeaveForward) {
-        const handled = onLeaveForward(currentItem, currentIndex, event)
-        if (handled !== false) {
-          event.preventDefault()
+        requestAnimationFrame(() => {
+          const node = itemRefs.current[next];
+
+          if (node instanceof HTMLElement) {
+            node.focus({
+              preventScroll: true,
+            });
+          }
+        });
+
+        return next;
+      });
+    },
+    [count, loop]
+  );
+
+  /*
+   * Grid navigation
+   *
+   * Example with columns = 3:
+   *
+   *   0  1  2
+   *   3  4  5
+   *   6  7  8
+   */
+  const moveGrid = useCallback(
+    (key) => {
+      if (!count) return;
+
+      setCurrentIndexState((current) => {
+        const row = Math.floor(current / columns);
+        const col = current % columns;
+
+        let next = current;
+
+        if (key === "ArrowRight") {
+          if (col < columns - 1) {
+            next = current + 1;
+          }
         }
-        return
+
+        if (key === "ArrowLeft") {
+          if (col > 0) {
+            next = current - 1;
+          }
+        }
+
+        if (key === "ArrowDown") {
+          const candidate = current + columns;
+
+          if (candidate < count) {
+            next = candidate;
+          }
+        }
+
+        if (key === "ArrowUp") {
+          const candidate = current - columns;
+
+          if (candidate >= 0) {
+            next = candidate;
+          }
+        }
+
+        if (next !== current) {
+          requestAnimationFrame(() => {
+            const node = itemRefs.current[next];
+
+            if (node instanceof HTMLElement) {
+              node.focus({
+                preventScroll: true,
+              });
+            }
+          });
+        }
+
+        return next;
+      });
+    },
+    [columns, count]
+  );
+
+  /*
+   * Generate props for each item
+   */
+  const getItemProps = useCallback(
+    (index, options = {}) => {
+      return {
+        ref: register(index),
+
+        /*
+         * IMPORTANT:
+         *
+         * Only one element is reachable by TAB.
+         */
+        tabIndex: currentIndex === index ? 0 : -1,
+
+        "data-focus-item": "true",
+
+        onFocus: (event) => {
+          setCurrentIndexState(index);
+
+          onActiveIndexChange?.(
+            index,
+            event.currentTarget
+          );
+
+          options.onFocus?.(event);
+        },
+
+        onClick: (event) => {
+          setCurrentIndexState(index);
+
+          options.onClick?.(event);
+        },
+
+        onKeyDown: (event) => {
+          /*
+           * Don't interfere with Ctrl/Alt/Cmd shortcuts
+           */
+          if (
+            event.altKey ||
+            event.ctrlKey ||
+            event.metaKey
+          ) {
+            options.onKeyDown?.(event);
+            return;
+          }
+
+          /*
+           * Escape
+           */
+          if (event.key === "Escape") {
+            if (onEscape) {
+              const handled = onEscape(
+                event,
+                index
+              );
+
+              if (handled !== false) {
+                event.preventDefault();
+              }
+
+              return;
+            }
+          }
+
+          /*
+           * Arrow navigation
+           */
+
+          if (orientation === "vertical") {
+            if (event.key === "ArrowDown") {
+              event.preventDefault();
+              move(1);
+              return;
+            }
+
+            if (event.key === "ArrowUp") {
+              event.preventDefault();
+              move(-1);
+              return;
+            }
+          }
+
+          if (orientation === "horizontal") {
+            if (event.key === "ArrowRight") {
+              event.preventDefault();
+              move(1);
+              return;
+            }
+
+            if (event.key === "ArrowLeft") {
+              event.preventDefault();
+              move(-1);
+              return;
+            }
+          }
+
+          /*
+           * Both directions
+           *
+           * This is LINEAR navigation.
+           *
+           * ↓ = next
+           * ↑ = previous
+           * → = next
+           * ← = previous
+           */
+          if (orientation === "both") {
+            if (
+              event.key === "ArrowDown" ||
+              event.key === "ArrowRight"
+            ) {
+              event.preventDefault();
+              move(1);
+              return;
+            }
+
+            if (
+              event.key === "ArrowUp" ||
+              event.key === "ArrowLeft"
+            ) {
+              event.preventDefault();
+              move(-1);
+              return;
+            }
+          }
+
+          /*
+           * Grid navigation
+           */
+          if (orientation === "grid") {
+            if (
+              event.key === "ArrowDown" ||
+              event.key === "ArrowUp" ||
+              event.key === "ArrowLeft" ||
+              event.key === "ArrowRight"
+            ) {
+              event.preventDefault();
+              moveGrid(event.key);
+              return;
+            }
+          }
+
+          /*
+           * Enter
+           */
+          if (event.key === "Enter") {
+            event.preventDefault();
+
+            onEnter?.(index, event);
+
+            options.onEnter?.(
+              index,
+              event
+            );
+
+            return;
+          }
+
+          /*
+           * Space
+           */
+          if (event.key === " ") {
+            options.onSpace?.(
+              index,
+              event
+            );
+
+            return;
+          }
+
+          /*
+           * Allow component-specific keyboard logic
+           */
+          options.onKeyDown?.(event);
+        },
+
+        /*
+         * Prevent callers from accidentally overriding
+         * our focus management.
+         */
+        ...options,
+
+        ref: register(index),
+
+        tabIndex:
+          currentIndex === index ? 0 : -1,
+
+        "data-focus-item": "true",
+      };
+    },
+    [
+      currentIndex,
+      move,
+      moveGrid,
+      onActiveIndexChange,
+      onEnter,
+      onEscape,
+      orientation,
+      register,
+    ]
+  );
+
+  /*
+   * Keep the DOM tab indexes synchronized.
+   */
+  useEffect(() => {
+    if (!enabled) return;
+
+    itemRefs.current.forEach((node, index) => {
+      if (node instanceof HTMLElement) {
+        node.tabIndex =
+          index === currentIndex ? 0 : -1;
       }
+    });
+  }, [currentIndex, enabled, count]);
 
-      let nextIndex = null
+  /*
+   * First item
+   */
+  const focusFirst = useCallback(() => {
+    focusItem(0);
+  }, [focusItem]);
 
-      if (orientation === 'vertical') {
-        if (event.key === 'ArrowDown') nextIndex = currentIndex + 1
-        if (event.key === 'ArrowUp') nextIndex = currentIndex - 1
-      } else if (orientation === 'horizontal') {
-        if (event.key === 'ArrowRight') nextIndex = currentIndex + 1
-        if (event.key === 'ArrowLeft') nextIndex = currentIndex - 1
-      } else if (orientation === 'grid') {
-        nextIndex = getGridTargetIndex(items, currentIndex, event.key, columns)
-      }
+  /*
+   * Current item
+   */
+  const focusCurrent = useCallback(() => {
+    focusItem(currentIndex);
+  }, [currentIndex, focusItem]);
 
-      if (nextIndex === null) return
-      if (nextIndex < 0 || nextIndex >= items.length) {
-        event.preventDefault()
-        return
-      }
+  return {
+    currentIndex,
 
-      event.preventDefault()
-      focusItem(nextIndex)
-    }
+    setCurrentIndex,
 
-    const observer = new MutationObserver(() => {
-      syncTabIndices(activeIndexRef.current)
-    })
-
-    container.addEventListener('focusin', handleFocusIn)
-    container.addEventListener('keydown', handleKeyDown)
-    observer.observe(container, {
-      childList: true,
-      subtree: true,
-      attributes: true,
-      attributeFilter: ['disabled', 'hidden', 'aria-hidden'],
-    })
-
-    syncTabIndices(activeIndexRef.current)
-
-    return () => {
-      container.removeEventListener('focusin', handleFocusIn)
-      container.removeEventListener('keydown', handleKeyDown)
-      observer.disconnect()
-      if (focusRafRef.current) cancelAnimationFrame(focusRafRef.current)
-    }
-  }, [allowArrowInEditable, columns, disabled, focusItem, getItems, onActiveIndexChange, onEscape, onLeaveBackward, onLeaveForward, onSelect, orientation, selector, syncTabIndices])
-
-  return useMemo(() => ({
-    ref: containerRef,
-    focusCurrent,
-    focusFirst,
     focusItem,
-    refresh: syncTabIndices,
-  }), [focusCurrent, focusFirst, focusItem, syncTabIndices])
+    focusFirst,
+    focusCurrent,
+
+    move,
+
+    getItemProps,
+
+    itemRefs,
+  };
 }

@@ -702,3 +702,10 @@ select {
   font-weight: 400;
   font-style: normal;
 }
+
+.reports-card-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 16px;
+  width: 100%;
+}

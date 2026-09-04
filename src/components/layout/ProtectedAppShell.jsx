@@ -18,7 +18,6 @@ import { scrollElementIntoView } from '@/utils/focusScroll'
 // import NewInvoicePage from './pages/NewInvoicePage.jsx'
 // import NewPurchasePage from './pages/Newpuchasepage.jsx'
 // import PartyFormPage from './pages/PartyFormPage.jsx'
-// import ReportDetailPage from './pages/ReportDetailPage.jsx'
 // import ExpenseManagementPage from './pages/ExpenseManagementPage.jsx'
 // import { BankingDashboardPage, BankingModulePage, ItemsMasterPage, UtilitiesDashboardPage, UtilityModulePage } from './pages/WorkspaceModules.jsx'
 import { findSidebarSectionByPath, getVisibleSidebarItems } from '@/data/erpModules'
@@ -42,18 +41,13 @@ const PAGE_FOCUS_TARGETS = {
     '/parties': '#parties-list [data-focus-item="true"]',
     '/parties/new': '[data-page-focus="party-company"]',
     '/reports': '#reports-grid [data-focus-item="true"]',
-    '/reports/sales': '#report-billwise-profit [data-focus-item="true"]',
-    '/reports/purchase': '#report-party-statement [data-focus-item="true"]',
-    '/reports/billwiseprofit': '#report-billwise-profit [data-focus-item="true"]',
-    '/reports/statement': '#report-party-statement [data-focus-item="true"]',
-    '/reports/gst': '[data-gst-sidebar-item="true"]',
-    '/reports/profit': '[data-focus-item="true"]',
-    '/reports/expenses': '#report-expenses-analysis [data-focus-item="true"]',
-    '/reports/expensesanalysis': '#report-expenses-analysis [data-focus-item="true"]',
     '/reports/profit-loss': '[data-focus-item="true"]',
+    '/reports/cash-flow': '#report-cash-flow [data-focus-item="true"]',
+    '/reports/party-ledger': '#report-party-ledger [data-focus-item="true"]',
+    '/reports/expenses': '#report-expenses-analysis [data-focus-item="true"]',
     '/reports/stock': '#report-stock [data-focus-item="true"]',
-    '/reports/cashflow': '[data-focus-item="true"]',
-    '/reports/balance-sheet': '#report-balance-sheet [data-focus-item="true"]',
+    '/reports/gst': '[data-gst-sidebar-item="true"]',
+    '/reports/billwise': '#report-billwise-profit [data-focus-item="true"]',
     '/items': '#items-master-table [data-focus-item="true"]',
     '/ai-intelligence': '#ai-intelligence-tree [data-focus-item="true"]',
     '/ai-reports': '#ai-reports-dashboard [data-focus-item="true"]',
@@ -96,13 +90,13 @@ function parentIdForPath(pathname) {
     return findSidebarSectionByPath(pathname)
 }
 
-function getPageFocusTarget(pathname) {
-    if (pathname === '/ai-intelligence' || pathname.startsWith('/ai-intelligence/')) {
-        return '#ai-intelligence-tree [data-focus-item="true"]'
-    }
+// function getPageFocusTarget(pathname) {
+//     if (pathname === '/ai-intelligence' || pathname.startsWith('/ai-intelligence/')) {
+//         return '#ai-intelligence-tree [data-focus-item="true"]'
+//     }
 
-    return PAGE_FOCUS_TARGETS[pathname] ?? PAGE_FOCUS_TARGETS['/dashboard']
-}
+//     return PAGE_FOCUS_TARGETS[pathname] ?? PAGE_FOCUS_TARGETS['/dashboard']
+// }
 
 function sidebarItemIdForPath(pathname) {
     const normalizedPath = pathname === '/' ? '/dashboard' : pathname

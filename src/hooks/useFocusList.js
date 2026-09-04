@@ -92,61 +92,107 @@ export default function useFocusList({
    * (listbox, toolbar, menu).
    */
   const getItemProps = useCallback(
-    (index, options = {}) => ({
-      ref: register(index),
-      // Roving tabIndex: only the focused item is in the tab order
-      tabIndex: index === currentIndex ? 0 : -1,
-      'data-section-entry': options.sectionEntry ? 'true' : undefined,
-      onFocus: (event) => {
-        // Sync state when an item receives focus (e.g. via mouse click)
-        setCurrentIndex(index)
-        options.onFocus?.(event)
-      },
-      onKeyDown: (event) => {
-        if (!enabled) {
-          options.onKeyDown?.(event)
-          return
-        }
+    (index, options = {}) => {
+      const {
+        onFocus: customOnFocus,
+        onKeyDown: customOnKeyDown,
+        onClick: customOnClick,
+        sectionEntry,
+        ...rest
+      } = options
 
-        if (orientation === 'vertical') {
-          if (event.key === 'ArrowDown') {
-            event.preventDefault()
-            move(1)
+      return {
+        ...rest,
+
+        ref: register(index),
+
+        // Roving tabindex
+        tabIndex: index === currentIndex ? 0 : -1,
+
+        'data-section-entry': sectionEntry ? 'true' : undefined,
+
+        onFocus: (event) => {
+          setCurrentIndex(index)
+          customOnFocus?.(event)
+        },
+
+        onClick: (event) => {
+          customOnClick?.(event)
+        },
+
+        onKeyDown: (event) => {
+          if (!enabled) {
+            customOnKeyDown?.(event)
             return
           }
-          if (event.key === 'ArrowUp') {
+
+          if (orientation === 'vertical') {
+            if (event.key === 'ArrowDown') {
+              event.preventDefault()
+              move(1)
+              return
+            }
+
+            if (event.key === 'ArrowUp') {
+              event.preventDefault()
+              move(-1)
+              return
+            }
+          }
+
+          if (orientation === 'horizontal') {
+            if (event.key === 'ArrowRight') {
+              event.preventDefault()
+              move(1)
+              return
+            }
+
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault()
+              move(-1)
+              return
+            }
+          }
+
+          if (event.key === 'Enter') {
             event.preventDefault()
-            move(-1)
+            onEnter?.(index, event)
             return
           }
-        }
-
-        if (orientation === 'horizontal') {
-          if (event.key === 'ArrowRight') {
-            event.preventDefault()
-            move(1)
-            return
+          if (orientation === 'both') {
+            if (event.key === 'ArrowDown') {
+              event.preventDefault()
+              move(1)
+              return
+            }
+            if (event.key === 'ArrowUp') {
+              event.preventDefault()
+              move(-1)
+              return
+            }
+            if (event.key === 'ArrowRight') {
+              event.preventDefault()
+              move(1)
+              return
+            }
+            if (event.key === 'ArrowLeft') {
+              event.preventDefault()
+              move(-1)
+              return
+            }
           }
-          if (event.key === 'ArrowLeft') {
-            event.preventDefault()
-            move(-1)
-            return
-          }
-        }
-
-        if (event.key === 'Enter') {
-          onEnter?.(index, event)
-        }
-
-        options.onKeyDown?.(event)
-      },
-      // Spread caller's extras, but don't let them clobber ref/tabIndex
-      ...options,
-      // These must stay as our versions
-      ref: register(index),
-      tabIndex: index === currentIndex ? 0 : -1,
-    }),
-    [currentIndex, enabled, move, onEnter, orientation, register],
+          customOnKeyDown?.(event)
+        },
+      }
+    },
+    [
+      currentIndex,
+      enabled,
+      move,
+      onEnter,
+      orientation,
+      register,
+    ],
   )
 
   return {
@@ -157,4 +203,5 @@ export default function useFocusList({
     getItemProps,
     itemRefs,
   }
+
 }

@@ -25,7 +25,7 @@ export function Card({ children, style = {}, className, onClick, ...props }) {
 }
 
 /* ── CardHead ─────────────────────────────────────────────── */
-export function CardHead({ title, sub, right }) {
+export function CardHead({ children, title, sub, right }) {
   return (
     <div className="card-head-wrap" style={{
       padding:        '13px 18px',

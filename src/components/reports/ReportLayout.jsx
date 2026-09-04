@@ -2,7 +2,7 @@
 import React, { useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { useApp } from '@/context/AppContext.jsx'
-import { buildReportState } from '@/data/reportUtils.js'
+import { buildReportState } from '@/lib/reports/calculations'
 import { Card, CardBody, CardHead, KpiCard, PageHeader, Table, Button } from '@/components/frontendUi/index.js'
 import { fmt, fmtShort } from '@/utils/helpers.js'
 import { useEscapeAction } from '@/context/EscapeContext.jsx'
@@ -19,6 +19,7 @@ export default function ReportLayout({ report, renderContent }) {
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
   const [partyFilter, setPartyFilter] = useState('All')
+  const [categoryFilter, setCategoryFilter] = useState('All')
 
   const reportState = useMemo(() => buildReportState({
     sales: invoices,
@@ -36,14 +37,18 @@ export default function ReportLayout({ report, renderContent }) {
     fromDate,
     toDate,
     partyFilter,
+    categoryFilter,
     setFromDate,
     setToDate,
     setPartyFilter,
+    setCategoryFilter,
     parties,
+    categories: ['All', ...Array.from(new Set(expenses.map((expense) => expense.category))).sort()],
     clearBaseFilters: () => {
       setFromDate('')
       setToDate('')
       setPartyFilter('All')
+      setCategoryFilter('All')
     },
   }
 

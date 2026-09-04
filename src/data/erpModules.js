@@ -1,12 +1,13 @@
 
 
 export const REPORT_MENU_ITEMS = [
-  { id: 'sales-reports', path: '/reports/sales', label: 'Sales Reports', reportId: 'billwiseprofit' },
-  { id: 'purchase-reports', path: '/reports/purchase', label: 'Purchase Reports', reportId: 'statement' },
+  { id: 'profit-loss-reports', path: '/reports/profit-loss', label: 'Profit & Loss', reportId: 'profit-loss' },
+  { id: 'cash-flow-reports', path: '/reports/cash-flow', label: 'Cash Flow', reportId: 'cash-flow' },
+  { id: 'party-ledger-reports', path: '/reports/party-ledger', label: 'Party Ledger', reportId: 'party-ledger' },
+  { id: 'expense-reports', path: '/reports/expenses', label: 'Expense Analysis', reportId: 'expenses' },
+  { id: 'stock-reports', path: '/reports/stock', label: 'Stock Report', reportId: 'stock' },
   { id: 'gst-reports', path: '/reports/gst', label: 'GST Reports', reportId: 'gst' },
-  { id: 'stock-reports', path: '/reports/stock', label: 'Stock Reports', reportId: 'stock' },
-  { id: 'profit-reports', path: '/reports/profit', label: 'Profit Reports', reportId: 'profit-loss' },
-  { id: 'expense-reports', path: '/reports/expenses', label: 'Expense Reports', reportId: 'expensesanalysis' },
+  { id: 'billwise-reports', path: '/reports/billwise', label: 'Bill-wise Profit', reportId: 'billwise' },
 ]
 
 // const AI_INTELLIGENCE_CHILDREN = [
