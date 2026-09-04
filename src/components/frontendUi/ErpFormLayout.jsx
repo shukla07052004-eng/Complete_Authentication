@@ -1,5 +1,5 @@
 import React, { useRef } from 'react'
-import { Card, CardBody, CardHead } from '../ui/Card.js'
+import { Card, CardBody, CardHead } from './Card.jsx'
 import useAutoScrollOnFocus from '../../hooks/useAutoScrollOnFocus.js'
 
 export function ErpFormPage({ title, sub, actions, sidebar, children, formProps }) {

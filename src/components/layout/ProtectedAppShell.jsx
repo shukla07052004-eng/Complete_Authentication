@@ -22,8 +22,7 @@ import { scrollElementIntoView } from '@/utils/focusScroll'
 // import ExpenseManagementPage from './pages/ExpenseManagementPage.jsx'
 // import { BankingDashboardPage, BankingModulePage, ItemsMasterPage, UtilitiesDashboardPage, UtilityModulePage } from './pages/WorkspaceModules.jsx'
 import { findSidebarSectionByPath, getVisibleSidebarItems } from '@/data/erpModules'
-import { Router } from 'lucide-react'
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 
 // import {
 //   DuesPage,
@@ -126,8 +125,9 @@ export default function App({ children }) {
     return (
         <ToastProvider>
             <AppProvider>
-                <EscapeEnabledAppShell />
-                {children}
+                <EscapeEnabledAppShell>
+                    {children}
+                </EscapeEnabledAppShell>
             </AppProvider>
         </ToastProvider>
     )
@@ -144,6 +144,7 @@ function LazyModule({ children }) {
 
 function EscapeEnabledAppShell({ children }) {
     const pathname = usePathname();
+    const router = useRouter()
     const focusManager = useFocusManager()
     const mainRef = useRef(null)
     const forceSidebarRestoreRef = useRef(false)
@@ -221,17 +222,17 @@ function EscapeEnabledAppShell({ children }) {
         const canGoBack = typeof window !== 'undefined' && Number(window.history.state?.idx) > 0
         if (canGoBack) {
             forceSidebarRestoreRef.current = true
-            Router.back()
+            router.back()
             return true
         }
         if (pathname !== '/' && pathname !== '/dashboard') {
             forceSidebarRestoreRef.current = true
-            Router.push('/dashboard')
+            router.push('/dashboard')
             return true
         }
         focusMainTarget('/dashboard')
         return true
-    }, [focusActiveSidebarItem, focusMainTarget, focusManager, pathname])
+    }, [focusActiveSidebarItem, focusMainTarget, focusManager, pathname, router])
 
     return (
         <EscapeProvider onUnhandledEscape={handleUnhandledEscape} onAfterEscape={ensureSafeFocus}>
@@ -248,6 +249,7 @@ function EscapeEnabledAppShell({ children }) {
 }
 function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreRef, children }) {
     const toast = useToast()
+    const router = useRouter()
     const [sidebarVisible, setSidebarVisible] = useState(false)
     const [shortcutSettings, setShortcutSettings] = useState(() => {
         if (typeof window === 'undefined') return DEFAULT_SHORTCUTS
@@ -348,8 +350,8 @@ function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreR
 
     const handleSidebarNavigate = useCallback((path) => {
         setRouteFocusMode('content')
-        Router.push(path)
-    })
+        router.push(path)
+    }, [router])
 
     const handleSidebarToggle = useCallback((sectionId) => {
         setOpenSidebarSectionId((current) => current === sectionId ? null : sectionId)
@@ -397,13 +399,13 @@ function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreR
         shortcuts: shortcutSettings,
         bindings: [
             { id: 'focusSearch', allowInEditable: true, handler: () => searchRef.current?.focus({ preventScroll: true }) },
-            { id: 'newInvoice', allowInEditable: true, handler: () => Router.push('/sales/new') },
+            { id: 'newInvoice', allowInEditable: true, handler: () => router.push('/sales/new') },
             {
                 id: 'navSales',
                 allowInEditable: true,
                 handler: () => {
                     setRouteFocusMode('content')
-                    Router.push('/sales')
+                    router.push('/sales')
                 },
             },
             {
@@ -411,7 +413,7 @@ function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreR
                 allowInEditable: true,
                 handler: () => {
                     setRouteFocusMode('content')
-                    Router.push('/purchase')
+                    router.push('/purchase')
                 },
             },
             {
@@ -419,7 +421,7 @@ function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreR
                 allowInEditable: true,
                 handler: () => {
                     setRouteFocusMode('content')
-                    Router.push('/reports')
+                    router.push('/reports')
                 },
             },
             {
@@ -498,7 +500,7 @@ function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreR
                         focusSidebarItemById(current.id)
                         return
                     }
-                    handleSidebarRouter.push(current.path || '/dashboard')
+                    handleSidebarNavigate(current.path || '/dashboard')
                 },
             },
         ],
@@ -508,9 +510,9 @@ function AppShell({ focusManager, mainRef, focusMainTarget, forceSidebarRestoreR
         <div style={{ minHeight: '100vh', height: '100vh', display: 'flex', flexDirection: 'column', background: 'var(--bg)', overflow: 'hidden' }}>
             {!isLockedWorkspaceRoute && (
                 <Topbar
-                    onNewInvoice={() => Router.push('/sales/new')}
-                    onNewPurchase={() => Router.push('/purchase/new')}
-                    onNewParty={() => Router.push('/parties/new')}
+                    onNewInvoice={() => router.push('/sales/new')}
+                    onNewPurchase={() => router.push('/purchase/new')}
+                    onNewParty={() => router.push('/parties/new')}
                     searchRef={searchRef}
                 />
             )}

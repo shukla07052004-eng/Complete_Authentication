@@ -9,15 +9,16 @@
  *       1. "cards"  – the report card grid (horizontal focus list inside)
  *       2. "detail" – the open report detail (when visible)
  */
+"use client"
 import React, { useMemo, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useApp } from '../../context/AppContext.js'
-import { buildReportState } from '../../data/reportUtils.js'
-import { Card, CardBody, CardHead, Input, KpiCard, PageHeader, Select, Table } from '../ui/index.js'
-import Button from '../ui/Button.js'
-import useFocusList from '../../hooks/useFocusList.js'
-import useSectionNav from '../../hooks/Usesectionnav.js'
-import { fmt, fmtShort } from '../../utils/helpers.js'
+import { useRouter } from 'next/navigation'
+import { useApp } from '@/context/AppContext.jsx'
+import { buildReportState } from '@/data/reportUtils.js'
+import { Card, CardBody, CardHead, Input, KpiCard, PageHeader, Select, Table } from '@/components/frontendUi/index.js'
+import Button from '@/components/frontendUi/Button.jsx'
+import useFocusList from '@/hooks/useFocusList.js'
+import useSectionNav from '@/hooks/Usesectionnav.js'
+import { fmt, fmtShort } from '@/utils/helpers.js'
 
 const REPORTS = [
   { id: 'pl',       name: 'Profit & Loss',   desc: 'Revenue, costs, and net profitability for the selected period.',            accent: '#111111' },
@@ -30,7 +31,7 @@ const REPORTS = [
 ]
 
 export default function ReportsWorkspace() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { invoices, purchases, parties, expenses } = useApp()
   const [activeReportId, setActiveReportId] = useState(REPORTS[0].id)
   const [detailOpen, setDetailOpen] = useState(false)
@@ -70,7 +71,7 @@ export default function ReportsWorkspace() {
   function openReport(report) {
     setActiveReportId(report.id)
     if (report.route) {
-      navigate(report.route)
+      router.push(report.route)
       return
     }
     setDetailOpen(true)

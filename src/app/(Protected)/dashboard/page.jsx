@@ -31,7 +31,6 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function Dashboard() {
   const { invoices, dashboard, company } = useApp()
   const [viewInvoice, setViewInvoice] = useState(null)
-  const [importOpen, setImportOpen] = useState(false)
   const [targets, setTargets] = useState(() => loadTargets())
   const [targetEditor, setTargetEditor] = useState(null)
   const targetFocus = useFocusZone({
@@ -106,12 +105,9 @@ export default function Dashboard() {
   return (
     <div className="animate-slide">
       {viewInvoice && <InvoiceView invoice={viewInvoice} onClose={() => setViewInvoice(null)} />}
-      {/* <ErpImportModal open={importOpen} onClose={() => setImportOpen(false)} defaultKind="complete" /> */}
-
       <PageHeader
         title="Dashboard"
         sub={`FY ${company.fy} | ${company.name}`}
-        right={<Button variant="primary" onClick={() => setImportOpen(true)}>Import Data</Button>}
       />
 
       <div className="kpi-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 22 }}>

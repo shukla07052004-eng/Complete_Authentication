@@ -1,20 +1,20 @@
+"use client"
 import React, { useRef, useState } from 'react'
-import { useApp }      from '../context/AppContext.jsx'
-import { useToast }    from '../context/ToastContext.jsx'
-import { fmt, fmtShort, todayISO } from '../utils/helpers.js'
+import { useApp }      from '@/context/AppContext.jsx'
+import { useToast }    from '@/context/ToastContext.jsx'
+import { fmt, fmtShort, todayISO } from '@/utils/helpers.js'
 import {
   KpiCard, PageHeader, Card, CardHead,
-} from '../components/ui/index.js'
-import { Avatar, Badge }    from '../components/ui/index.js'
-import { SearchInput, FilterPills } from '../components/ui/index.js'
-import { Input, Select, FormGrid, Textarea } from '../components/ui/index.js'
-import Table       from '../components/ui/Table.jsx'
-import Modal       from '../components/ui/Modal.jsx'
-import Button      from '../components/ui/Button.jsx'
-import PurchaseInvoiceView from '../components/layout/PurchaseInvoiceView.jsx'
-import useAutocomplete from '../hooks/useAutocomplete.js'
-import useKeyboard from '../hooks/useKeyboard.js'
-import ErpImportModal from '../components/import/ErpImportModal.jsx'
+} from '@/components/frontendUi/index.js'
+import { Avatar, Badge }    from '@/components/frontendUi/index.js'
+import { SearchInput, FilterPills } from '@/components/frontendUi/index.js'
+import { Input, Select, FormGrid, Textarea } from '@/components/frontendUi/index.js'
+import Table       from '@/components/frontendUi/Table.jsx'
+import Modal       from '@/components/frontendUi/Modal.jsx'
+import Button      from '@/components/frontendUi/Button.jsx'
+import PurchaseInvoiceView from '@/components/layout/PurchaseInvoiceView.jsx'
+import useAutocomplete from '@/hooks/useAutocomplete.js'
+import useKeyboard from '@/hooks/useKeyboard.js'
 
 const FILTERS = ['All', 'Paid', 'Partial', 'Pending']
 const CELL_INPUT = {
@@ -30,7 +30,6 @@ export default function PurchasePage({ onNewPurchase }) {
   const { purchases, addPurchase, parties } = useApp()
   const toast = useToast()
   const [open, setOpen] = useState(false)
-  const [importOpen, setImportOpen] = useState(false)
   const [viewPO, setViewPO] = useState(null)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('All')
@@ -142,16 +141,12 @@ export default function PurchasePage({ onNewPurchase }) {
   return (
     <div className="animate-slide">
       {viewPO && <PurchaseInvoiceView purchase={viewPO} onClose={() => setViewPO(null)} />}
-      <ErpImportModal open={importOpen} onClose={() => setImportOpen(false)} defaultKind="purchases" />
 
       <PageHeader
         title="Purchase"
         sub="Keyboard-first purchase entry aligned with the invoice workflow."
         right={(
-          <>
-            <Button variant="ghost" onClick={() => setImportOpen(true)}>Import</Button>
-            <Button variant="primary" onClick={onNewPurchase}>+ New Purchase</Button>
-          </>
+          <Button variant="primary" onClick={onNewPurchase}>+ New Purchase</Button>
         )}
       />
       <div className="kpi-grid-4" style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: 14, marginBottom: 22 }}>

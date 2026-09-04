@@ -2,21 +2,21 @@
 // BizLedger Pro — Sales Page
 // Full invoice management: create, pay, view, filter, sort
 // ============================================================
+"use client"
 import React, { useState } from 'react'
-import { useApp }      from '../context/AppContext.jsx'
-import { useToast }    from '../context/ToastContext.jsx'
-import { fmt, fmtShort } from '../utils/helpers.js'
+import { useApp }      from '@/context/AppContext.jsx'
+import { useToast }    from '@/context/ToastContext.jsx'
+import { fmt, fmtShort } from '@/utils/helpers.js'
 import {
   KpiCard, PageHeader, Card, CardHead,
-} from '../components/ui/index.js'
-import { Avatar, Badge }    from '../components/ui/index.js'
-import { SearchInput, FilterPills } from '../components/ui/index.js'
-import { Input, Select, FormGrid } from '../components/ui/index.js'
-import Table       from '../components/ui/Table.jsx'
-import Modal       from '../components/ui/Modal.jsx'
-import Button      from '../components/ui/Button.jsx'
-import InvoiceView from '../components/layout/InvoiceView.jsx'
-import ErpImportModal from '../components/import/ErpImportModal.jsx'
+} from '@/components/frontendUi/index.js'
+import { Avatar, Badge }    from '@/components/frontendUi/index.js'
+import { SearchInput, FilterPills } from '@/components/frontendUi/index.js'
+import { Input, Select, FormGrid } from '@/components/frontendUi/index.js'
+import Table       from '@/components/frontendUi/Table.jsx'
+import Modal       from '@/components/frontendUi/Modal.jsx'
+import Button      from '@/components/frontendUi/Button.jsx'
+import InvoiceView from '@/components/layout/InvoiceView.jsx'
 
 const FILTERS = ['All', 'Paid', 'Partial', 'Pending']
 
@@ -27,7 +27,6 @@ export default function SalesPage({ onNewInvoice }) {
   const [search,      setSearch]      = useState('')
   const [filter,      setFilter]      = useState('All')
   const [viewInvoice, setViewInvoice] = useState(null)
-  const [importOpen,  setImportOpen]  = useState(false)
   const [payModal,    setPayModal]    = useState(null)   // invoice to pay
   const [payAmt,      setPayAmt]      = useState('')
   const [payMode,     setPayMode]     = useState('Cash')
@@ -137,14 +136,12 @@ export default function SalesPage({ onNewInvoice }) {
       {viewInvoice && (
         <InvoiceView invoice={viewInvoice} onClose={() => setViewInvoice(null)} />
       )}
-      <ErpImportModal open={importOpen} onClose={() => setImportOpen(false)} defaultKind="sales" />
 
       <PageHeader
         title="Sales"
         sub="Invoice management & receivables"
         right={
           <>
-            <Button variant="ghost" onClick={() => setImportOpen(true)}>Import</Button>
             <Button variant="primary" onClick={onNewInvoice}>
               + New Invoice
             </Button>

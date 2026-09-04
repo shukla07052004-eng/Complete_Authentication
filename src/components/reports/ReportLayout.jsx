@@ -1,10 +1,11 @@
+"use client"
 import React, { useMemo, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useApp } from '../../context/AppContext.js'
-import { buildReportState } from '../../data/reportUtils.js'
-import { Card, CardBody, CardHead, KpiCard, PageHeader, Table, Button } from '../ui/index.js'
-import { fmt, fmtShort } from '../../utils/helpers.js'
-import { useEscapeAction } from '../../context/EscapeContext.jsx'
+import { useRouter } from 'next/navigation'
+import { useApp } from '@/context/AppContext.jsx'
+import { buildReportState } from '@/data/reportUtils.js'
+import { Card, CardBody, CardHead, KpiCard, PageHeader, Table, Button } from '@/components/frontendUi/index.js'
+import { fmt, fmtShort } from '@/utils/helpers.js'
+import { useEscapeAction } from '@/context/EscapeContext.jsx'
 
 const FILTER_CARD_STYLE = {
   marginBottom: 18,
@@ -13,7 +14,7 @@ const FILTER_CARD_STYLE = {
 const REPORTS_RESTORE_FOCUS_KEY = 'reports-restore-focus'
 
 export default function ReportLayout({ report, renderContent }) {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { invoices, purchases, parties, expenses, itemMaster } = useApp()
   const [fromDate, setFromDate] = useState('')
   const [toDate, setToDate] = useState('')
@@ -52,7 +53,7 @@ export default function ReportLayout({ report, renderContent }) {
     handler: () => {
       sessionStorage.setItem('reports-last-card', report.id)
       sessionStorage.setItem(REPORTS_RESTORE_FOCUS_KEY, 'true')
-      navigate('/reports')
+      router.push('/reports')
       return true
     },
   })
@@ -75,7 +76,7 @@ export default function ReportLayout({ report, renderContent }) {
               onClick={() => {
                 sessionStorage.setItem('reports-last-card', report.id)
                 sessionStorage.setItem(REPORTS_RESTORE_FOCUS_KEY, 'true')
-                navigate('/reports')
+                router.push('/reports')
               }}
             >
               Back to Reports

@@ -4,8 +4,8 @@ import { User } from "@/models/userModel"
 import { signupVerifySchema } from '@/schemas/signupverify'
 import bcrpt from "bcrypt"
 import { sendEmail } from "@/helper/sendVerificationEmail";
-import { z } from "zod"
-export async function POST(req: NextRequest, res: NextResponse) {
+
+export async function POST(req: NextRequest) {
     try {
         await connectDB()
 

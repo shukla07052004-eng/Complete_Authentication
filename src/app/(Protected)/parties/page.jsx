@@ -1,7 +1,8 @@
+"use client"
 import React, { useEffect, useRef, useState } from 'react'
-import { useNavigate } from 'react-router-dom'
-import { useApp } from '../context/AppContext.jsx'
-import { fmt, fmtShort } from '../utils/helpers.js'
+import { useRouter } from 'next/navigation'
+import { useApp } from '@/context/AppContext.jsx'
+import { fmt, fmtShort } from '@/utils/helpers.js'
 import {
   Card,
   CardHead,
@@ -10,19 +11,17 @@ import {
   PageHeader,
   SearchInput,
   Table,
-} from '../components/ui/index.js'
-import Button from '../components/ui/Button.jsx'
-import ErpImportModal from '../components/import/ErpImportModal.jsx'
+} from '@/components/frontendUi/index.js'
+import Button from '@/components/frontendUi/Button.jsx'
 
 const PARTY_FILTERS = ['All', 'Customer', 'Supplier', 'Distributor', 'Carrier', 'Agent']
 
 export default function PartiesPage() {
-  const navigate = useNavigate()
+  const router = useRouter()
   const { parties } = useApp()
   const searchRef = useRef(null)
   const [search, setSearch] = useState('')
   const [filter, setFilter] = useState('All')
-  const [importOpen, setImportOpen] = useState(false)
 
   useEffect(() => {
     const handler = (event) => {
@@ -32,13 +31,13 @@ export default function PartiesPage() {
       }
       if (event.ctrlKey && event.key.toLowerCase() === 'n') {
         event.preventDefault()
-        navigate('/parties/new')
+        router.push('/parties/new')
       }
     }
 
     document.addEventListener('keydown', handler, true)
     return () => document.removeEventListener('keydown', handler, true)
-  }, [navigate])
+  }, [router])
 
   const filteredParties = parties.filter((party) => {
     const query = search.toLowerCase()
@@ -53,15 +52,11 @@ export default function PartiesPage() {
 
   return (
     <div className="animate-slide">
-      <ErpImportModal open={importOpen} onClose={() => setImportOpen(false)} defaultKind="parties" />
       <PageHeader
         title="Parties"
         sub="Keyboard-first party directory with full enterprise onboarding."
         right={(
-          <>
-            <Button variant="ghost" onClick={() => setImportOpen(true)}>Import</Button>
-            <Button variant="primary" onClick={() => navigate('/parties/new')}>+ Add Party</Button>
-          </>
+          <Button variant="primary" onClick={() => router.push('/parties/new')}>+ Add Party</Button>
         )}
       />
 
@@ -100,7 +95,7 @@ export default function PartiesPage() {
                   tabIndex={-1}
                   onClick={(event) => {
                     event.stopPropagation()
-                    navigate('/parties/new', { state: { partyId: row.id } })
+                    router.push(`/parties/new?partyId=${encodeURIComponent(row.id)}`)
                   }}
                 >
                   Edit
