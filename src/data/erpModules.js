@@ -22,7 +22,7 @@ export const ERP_SIDEBAR_ITEMS = [
   { id: 'parties', path: '/parties', label: 'Parties', icon: 'parties' },
   { id: 'items', path: '/items', label: 'Items', icon: 'inventory' },
   { id: 'expense', path: '/expense', label: 'Expenses', icon: 'wallet' },
-  { id: 'reports', label: 'Reports', icon: 'analytics', children: REPORT_MENU_ITEMS },
+  { id: 'reports', path: '/reports', label: 'Reports', icon: 'analytics', children: REPORT_MENU_ITEMS },
   // { id: 'ai-intelligence', label: 'AI Intelligence', icon: 'spark', children: AI_INTELLIGENCE_CHILDREN },
   {
     id: 'banking',
@@ -54,9 +54,26 @@ export const ERP_SIDEBAR_ITEMS = [
 ]
 
 export function findSidebarSectionByPath(pathname) {
-  return ERP_SIDEBAR_ITEMS.find((item) => item.children?.some((child) => pathname === child.path || pathname.startsWith(`${child.path}/`)))?.id ?? null
-}
+  return ERP_SIDEBAR_ITEMS.find((item) => {
+    // Parent route
+    if (
+      item.path &&
+      (
+        pathname === item.path ||
+        pathname.startsWith(`${item.path}/`)
+      )
+    ) {
+      return true
+    }
 
+    // Child route
+    return item.children?.some(
+      (child) =>
+        pathname === child.path ||
+        pathname.startsWith(`${child.path}/`)
+    )
+  })?.id ?? null
+}
 export function getVisibleSidebarItems(openSectionId = null) {
   return ERP_SIDEBAR_ITEMS.flatMap((item) => {
     const parentEntry = {

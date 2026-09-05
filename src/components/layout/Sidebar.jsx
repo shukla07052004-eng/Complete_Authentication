@@ -17,7 +17,26 @@ function Sidebar({
   const pathname = usePathname()
   const activePath = pathname
   const activeSectionId = useMemo(
-    () => NAV_ITEMS.find((item) => item.children?.some((child) => activePath === child.path || activePath.startsWith(`${child.path}/`)))?.id ?? null,
+    () =>
+      NAV_ITEMS.find((item) => {
+        // Parent route
+        if (
+          item.path &&
+          (
+            activePath === item.path ||
+            activePath.startsWith(`${item.path}/`)
+          )
+        ) {
+          return true
+        }
+
+        // Child route
+        return item.children?.some(
+          (child) =>
+            activePath === child.path ||
+            activePath.startsWith(`${child.path}/`)
+        )
+      })?.id ?? null,
     [activePath],
   )
 
@@ -38,7 +57,7 @@ function Sidebar({
 
             return (
               <div key={item.id} className="erp-sidebar__group">
-                <SidebarButton
+                {/* <SidebarButton
                   item={item}
                   active={item.path ? activePath === item.path || activePath.startsWith(`${item.path}/`) : isSectionActive}
                   expanded={isSection ? isOpen : undefined}
@@ -48,9 +67,35 @@ function Sidebar({
                   onClick={() => {
                     if (isSection) {
                       onToggleSection?.(item.id)
-                      return
                     }
-                    onNavigate?.(item.path)
+
+                    if (item.path) {
+                      onNavigate?.(item.path)
+                    }
+                  }}
+                /> */}
+                <SidebarButton
+                  item={item}
+                  active={
+                    item.path
+                      ? activePath === item.path ||
+                      activePath.startsWith(`${item.path}/`)
+                      : isSectionActive
+                  }
+                  expanded={isSection ? isOpen : undefined}
+                  focusManager={focusManager}
+                  tabIndex={parentIndex === activeIndex ? 0 : -1}
+                  onFocus={() => onActiveIndexChange?.(parentIndex)}
+                  onClick={() => {
+                    // If it has children, open/close dropdown
+                    if (isSection) {
+                      onToggleSection?.(item.id)
+                    }
+
+                    // If it has a route, navigate to it
+                    if (item.path) {
+                      onNavigate?.(item.path)
+                    }
                   }}
                 />
 
@@ -70,7 +115,16 @@ function Sidebar({
                             tabIndex={childIndex === activeIndex ? 0 : -1}
                             aria-current={active ? 'page' : undefined}
                             onFocus={() => onActiveIndexChange?.(childIndex)}
-                            onClick={() => onNavigate?.(child.path)}
+                            onClick={() => {
+                              if (isSection) {
+                                onToggleSection?.(item.id)
+                              }
+
+                              if (item.path) {
+                                onNavigate?.(item.path)
+                              }
+                            }}
+                            
                             onMouseDown={(event) => {
                               event.preventDefault()
                               event.stopPropagation()
